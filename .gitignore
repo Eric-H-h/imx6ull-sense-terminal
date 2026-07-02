@@ -1,0 +1,13 @@
+*.o
+*.a
+*.so
+*.elf
+*.bin
+*.log
+*.yuv
+*.jpg
+secrets.local.md
+app/daemon/imx6ull-sense
+.cache/
+build/
+cmake-build-*/

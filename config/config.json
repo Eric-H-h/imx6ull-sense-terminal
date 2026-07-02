@@ -1,0 +1,12 @@
+{
+  "device": "/dev/video0",
+  "width": 640,
+  "height": 480,
+  "fps_limit": 15,
+  "jpeg_quality": 75,
+  "http_port": 8080,
+  "event_log": "/var/log/imx6ull-sense/events.jsonl",
+  "motion_threshold": 12000,
+  "motion_cooldown_ms": 1500
+}
+

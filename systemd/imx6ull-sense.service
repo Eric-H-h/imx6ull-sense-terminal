@@ -1,0 +1,16 @@
+[Unit]
+Description=i.MX6ULL Sense Terminal
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/imx6ull-sense -c /etc/imx6ull-sense/config.json
+Restart=always
+RestartSec=3
+WorkingDirectory=/var/lib/imx6ull-sense
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
