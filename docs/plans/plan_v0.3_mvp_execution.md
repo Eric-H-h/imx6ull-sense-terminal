@@ -561,7 +561,153 @@ Next: 下一步唯一动作
 - 不静默切分支；需要切分支时先说明。
 - 每个 milestone 完成后同步真实日志，再进入下一阶段。
 
-## 8. Assumptions
+## 8. Git 分支、Commit、MR/PR 规则
+
+### 8.1 当前阶段分支策略
+
+当前仓库仍处于 `No commits yet on develop` 状态，`develop` 是 unborn branch。因此当前阶段保持在 `develop`，不要现在再切新的 feature 分支；先让第一次提交落在 `develop` 上。
+
+初始提交完成后：
+
+- `develop` 作为日常集成分支。
+- `main` 只用于最终稳定 MVP/release。
+- 每个里程碑开始前，从 `develop` 切一个独立工作分支。
+- Codex 创建分支时统一使用 `codex/` 前缀。
+
+建议分支：
+
+```text
+develop
+codex/m0-bringup
+codex/m1-uvc-capture
+codex/m2-mjpeg-stream
+codex/m3-motion-event
+codex/m4-systemd-fault
+codex/m5-docs-demo
+main
+```
+
+切分支时机：
+
+- 在开始某个里程碑的代码/文档改动前切分支。
+- 不要在已经改了一半后再切分支。
+- 如果工作区有无关脏改动，先停下说明，不静默切分支。
+- 小范围计划文档调整可以留在当前规划上下文；实际代码实现必须走对应里程碑分支。
+
+### 8.2 Commit 规则
+
+第一次提交：
+
+- 等 M0 至少完成 WSL 构建工具安装、scaffold 可 build/run、`docs/01_bringup.md` 记录真实日志后提交。
+- 不猜用户邮箱；用户配置好 `git config user.email` 后再 commit。
+- 建议提交信息：
+
+```text
+chore: initialize imx6ull sense terminal project
+```
+
+后续提交节奏：
+
+- 不等整个项目做完再提交。
+- 每完成一个可验证的小闭环就提交。
+- 每个 commit 必须对应能说明的结果：命令、输出、日志或文档证据。
+- 不把未验证代码和真实测试日志混在一个大 commit 里。
+
+建议 commit 类型：
+
+```text
+docs: record m0 bring-up logs
+docs: record uvc camera formats
+feat: add v4l2 capture loop
+feat: add mjpeg http stream
+feat: add motion event log
+chore: add systemd service validation
+docs: add final test report
+```
+
+### 8.3 MR/PR 规则
+
+这里的 MR/PR 统一指“工作分支合并回 `develop` 的请求”。如果使用 GitHub，就叫 PR；如果使用 GitLab，就叫 MR。
+
+什么时候开 MR/PR：
+
+- 一个里程碑达到验收标准后开。
+- 相关 docs 已经写入真实命令和输出后开。
+- 本地 `git status` 确认只包含本里程碑相关变更后开。
+- 不为每个小 commit 单独开 MR/PR。
+
+建议 MR/PR 粒度：
+
+```text
+MR/PR 1: M0 bring-up and initial environment baseline
+MR/PR 2: M1 USB UVC camera capture baseline
+MR/PR 3: M2 MJPEG browser stream
+MR/PR 4: M3 motion event logging
+MR/PR 5: M4 systemd and fault injection
+MR/PR 6: M5 README, test report, interview packaging
+```
+
+什么时候不开 MR/PR：
+
+- M0 构建工具还没装好时不开。
+- 没有真实测试日志时不开。
+- 代码还不能编译时不开。
+- 板端关键命令没跑过时不开。
+- 工作区混入无关改动时不开。
+
+MR/PR 描述模板：
+
+```md
+## Summary
+- 本次完成的里程碑：
+- 本次实现/更新内容：
+
+## Verification
+- Command:
+- Output:
+- Result:
+
+## Docs Updated
+- docs/...
+
+## Known Issues
+- 当前阻塞：
+- 下一步：
+```
+
+### 8.4 Release Flow
+
+MVP 前：
+
+- 所有开发合并到 `develop`。
+- `main` 不作为日常开发分支。
+- `develop` 可以不完美，但每次 MR/PR 合并后应保持可构建、可解释。
+
+MVP 完成后：
+
+- 当 M0-M4 全部完成，M5 文档包装完成后，从 `develop` 发 release MR/PR 到 `main`。
+- release 合并后打 tag：
+
+```text
+v0.1-mvp
+```
+
+release 条件：
+
+- 浏览器能看到 MJPEG stream。
+- motion event 能写 JSONL。
+- systemd restart/reboot/camera missing/bad config 都有测试记录。
+- README 和 `docs/test_report.md` 能独立说明项目结果。
+
+### 8.5 Git 工作流 Assumptions
+
+- 当前默认执行分支是 `develop`。
+- 当前还没有 remote；remote 配好后再 push 和开 MR/PR。
+- GitHub 场景下使用 PR，GitLab 场景下使用 MR，规则相同。
+- 主 session 不自动乱切分支；需要切分支时先说明当前状态和目标分支。
+- M0 未完成前，不开 M1/M2 的实现分支，不写 V4L2/MJPEG 代码。
+
+## 9. Assumptions
 
 - DDL 是 2026 年 7 月底前完成可演示 MVP。
 - 用户平日晚上约 2 小时，周末可多推进。
