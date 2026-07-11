@@ -509,6 +509,12 @@ fallback 规则：
 - M2 未完成前，不做 M3/M4 扩展。
 - MVP 前不做 AI、录像、OTA、字符驱动、复杂 Web UI。
 
+本地资料优先级：
+
+- 遇到板端 bring-up、USB、摄像头、CSI、GPIO、设备树、电源、时钟或启动问题时，先查本地资料索引 `docs/reference/local_board_documents.md`。
+- 野火教程用于匹配开发板实际操作流程；NXP 官方手册用于确认 i.MX6ULL 芯片级事实；`EBF6ULL S1 Pro` 硬件资料和原理图用于确认板级连线和 pinout。
+- 原理图是板级问题的事实来源，不能只凭经验猜测接口、电压、复位脚或 pinmux。
+
 ## 6. 测试与记录规范
 
 每次工作 session 结束必须记录：
@@ -520,6 +526,90 @@ Output: 看到什么输出
 Success: 是否满足验收
 Next: 下一步唯一动作
 ```
+
+阶段总结与 bug 记录规则：
+
+- 每完成一个阶段，必须在 `docs/stage_summaries/` 下产出一份阶段总结文档。
+- 每处理一个 meaningful bug/blocker，必须在 `docs/bug_reports/` 下产出一份独立 bug 复盘文档。
+- 所有阶段内出现的 meaningful bug/blocker，必须同步汇总到 `docs/bug_reports/README.md`。
+- 每次计划调整如果改变阶段验收标准，必须说明对应阶段总结中应记录哪些验收证据。
+- 每次识别风险或 fallback，如果风险变成真实阻塞，必须给出 bug ID、归属阶段和 bug 报告文件名。
+
+阶段总结命名：
+
+```text
+docs/stage_summaries/M0_environment_and_board_baseline.md
+docs/stage_summaries/M1_usb_uvc_camera_capture.md
+docs/stage_summaries/M2_mjpeg_browser_stream.md
+docs/stage_summaries/M3_motion_event_logging.md
+docs/stage_summaries/M4_systemd_fault_injection.md
+docs/stage_summaries/M5_resume_demo_packaging.md
+```
+
+阶段总结至少包含：
+
+- Stage goal：本阶段目标。
+- Acceptance evidence：满足验收标准的命令、输出、截图/日志位置。
+- Board/runtime facts：板端环境、设备节点、IP、服务状态等真实事实。
+- Changes made：代码、配置、文档的关键变化。
+- Bugs/blockers：本阶段遇到的 bug ID 列表。
+- Open risks：未解决但不阻塞进入下一阶段的问题。
+- Next stage entry condition：进入下一阶段前必须满足的条件。
+
+Bug ID 命名规则：
+
+```text
+<STAGE>-<CATEGORY>-<NNN>_<short_slug>.md
+```
+
+示例：
+
+```text
+M0-NET-WIFI-001_usb_rndis_board_link.md
+M1-CAM-UVC-001_no_video_node.md
+M2-HTTP-001_stream_boundary_broken.md
+M3-MOTION-001_false_positive_threshold.md
+M4-SYSTEMD-001_restart_loop_bad_config.md
+```
+
+推荐 category：
+
+```text
+BUILD
+NET
+USB
+CAM
+V4L2
+HTTP
+MOTION
+SYSTEMD
+CONFIG
+PERF
+HW
+DOC
+```
+
+单 bug 复盘文档至少包含：
+
+- Symptom：现象。
+- Stage：归属阶段。
+- Environment：板端/WSL/设备/配置。
+- Reproduction：复现命令和步骤。
+- Evidence：关键输出、日志、截图或文档引用。
+- Root cause：原因；如果未确认，写当前假设。
+- Fix or workaround：修复或绕过方式。
+- Verification：验证命令和结果。
+- Impact on plan：是否改变阶段顺序、验收标准或 fallback。
+- Follow-up：后续是否需要主线 session 继续处理。
+
+跨阶段 bug 索引 `docs/bug_reports/README.md` 至少维护：
+
+- Bug ID。
+- 标题。
+- 阶段。
+- 状态：open / mitigated / fixed / wontfix。
+- 是否阻塞当前 milestone。
+- 对应 bug 报告路径。
 
 关键测试矩阵：
 

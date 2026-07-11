@@ -1,0 +1,39 @@
+# 阶段总结索引
+
+本目录用于保存每个已完成里程碑的阶段总结文档。
+
+## 记录规则
+
+每完成一个里程碑，都必须先在本目录补齐阶段总结，再进入下一个里程碑的实现工作。
+
+每份阶段总结至少包含：
+
+- 里程碑名称和完成日期
+- 阶段范围和验收结果
+- 验收证据和真实命令输出
+- 本阶段遇到的 bug 或 blocker
+- 未关闭风险和缓解方式
+- 本阶段做出的关键决策
+- 已更新的文档
+- Git 分支和 commit
+- 进入下一阶段的条件
+
+## 命名规则
+
+使用稳定的里程碑文件名：
+
+```text
+M0_environment_and_board_baseline.md
+M1_usb_uvc_camera_capture.md
+M2_mjpeg_browser_stream.md
+M3_motion_event_logging.md
+M4_systemd_fault_injection.md
+M5_resume_demo_packaging.md
+```
+
+## 当前阶段总结
+
+| 里程碑 | 总结文档 | 状态 |
+| --- | --- | --- |
+| M0 | [M0 环境与板端基线](M0_environment_and_board_baseline.md) | 已完成 |
+| M1 | USB UVC 摄像头采集 | 进行中 |
