@@ -36,4 +36,4 @@ M5_resume_demo_packaging.md
 | 里程碑 | 总结文档 | 状态 |
 | --- | --- | --- |
 | M0 | [M0 环境与板端基线](M0_environment_and_board_baseline.md) | 已完成 |
-| M1 | USB UVC 摄像头采集 | 进行中 |
+| M1 | [M1 USB UVC 摄像头采集](M1_usb_uvc_camera_capture.md) | 已完成 |
