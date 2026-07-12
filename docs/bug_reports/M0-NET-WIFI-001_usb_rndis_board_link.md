@@ -88,10 +88,15 @@ M0 部署路径从 Wi-Fi 切换为 USB RNDIS。
 
 执行动作：
 
-1. 更换支持数据传输的 USB 线。
-2. 安装或选择 Windows 侧 USB RNDIS Adapter。
-3. 使用板端 USB 网卡地址 `192.168.7.2`。
-4. 通过 USB RNDIS 重新验证 ping、SSH、SCP 和板端执行。
+1. 确认 USB 线连接的是开发板 **USB OTG 接口**，不是普通 USB HOST 接口。
+2. 更换为明确支持数据传输的 USB 线，排除仅充电线和不稳定线材。
+3. 在 Windows 设备管理器中为枚举出的 USB 网络设备手动更新驱动。
+4. 依次选择“浏览我的电脑以查找驱动程序” -> “让我从计算机上的可用驱动程序列表中选取” -> “网络适配器” -> “Microsoft” -> `USB RNDIS Adapter`。部分 Windows 版本名称可能是 `Remote NDIS Compatible Device`。
+5. 驱动完成后重新拔插 OTG 数据线，确认 Windows 网络适配器无黄色警告。
+6. 确认板端 `usb0` 为 `LOWER_UP`、carrier 为 `1`，并使用板端地址 `192.168.7.2`。
+7. 通过 USB RNDIS 重新验证 ping、SSH、SCP 和板端执行。
+
+详细安装和验证命令见 `docs/01_bringup.md` 的“Windows 侧 RNDIS 驱动安装与接线”。
 
 ## 验证结果
 
@@ -147,5 +152,6 @@ debian@192.168.7.2
 
 - M1-M5 默认使用 USB RNDIS `192.168.7.2`。
 - Wi-Fi 只作为可选路径，不作为主部署路径。
-- 如果 SSH/SCP 再次失败，先检查物理链路和 `usb0` 状态，再考虑应用代码。
+- USB RNDIS 必须使用开发板 OTG 接口和支持数据传输的 USB 线。
+- 如果 SSH/SCP 再次失败，按“OTG 接口 -> 数据线 -> Windows RNDIS 驱动 -> `usb0` carrier -> IP 地址”的顺序检查，再考虑应用代码。
 - 后续网络问题要创建新的 bug 报告，不再混入本 M0 报告。

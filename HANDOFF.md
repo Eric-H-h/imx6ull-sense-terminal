@@ -30,6 +30,8 @@ V4L2 摄像头 / UVC 采集
 
 仓库已在 WSL 路径下创建并完成 M0 初始化。这个仓库的 Git 操作必须优先在 WSL 内部执行；Windows Git 通过 UNC 路径访问 WSL 仓库时可能误判 modified 文件。
 
+完整 Git 命令、里程碑分支和提交检查流程见 `docs/reference/git_workflow.md`。
+
 Git 状态：
 
 - 当前工作分支：`codex/m1-uvc-capture`
@@ -73,6 +75,7 @@ docs/reference/motion_notes.md
 docs/reference/design_decisions.md
 docs/reference/benchmark_against_open_source.md
 docs/reference/local_board_documents.md
+docs/reference/git_workflow.md
 ```
 
 本地忽略产物：
@@ -99,6 +102,8 @@ M0 后默认板端连接：
 ```text
 USB RNDIS: debian@192.168.7.2
 ```
+
+RNDIS 硬性接线要求：开发板必须使用 USB OTG 接口，并使用支持数据传输的 USB 线。Windows 侧需要正确绑定 `USB RNDIS Adapter`；普通 USB HOST 接口或仅充电线不能建立该链路。
 
 之前的 Wi-Fi 路径 `192.168.18.210` 不稳定，不再作为默认部署路径。
 
@@ -299,6 +304,7 @@ MVP 后才考虑的可选项：
 ```text
 docs/plans/plan_v0.3_mvp_execution.md
 docs/reference/local_board_documents.md
+docs/reference/git_workflow.md
 docs/stage_summaries/README.md
 docs/bug_reports/README.md
 docs/02_camera_capture.md

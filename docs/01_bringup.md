@@ -494,6 +494,56 @@ echo $?
 
 After replacing the USB cable and installing the Windows-side RNDIS driver, USB networking became the default M0 board link.
 
+#### Windows 侧 RNDIS 驱动安装与接线
+
+已验证成功的接线方式：
+
+    Windows 主机 USB 口
+      -> 支持数据传输的 USB 线
+      -> EBF6ULL S1 Pro 的 USB OTG 接口
+
+硬性要求：
+
+- 必须连接开发板的 USB OTG 接口，不能连接普通 USB HOST 接口。RNDIS 需要开发板以 USB device/gadget 身份被 Windows 枚举。
+- 必须使用支持数据传输的 USB 线。仅充电线可能有供电表现，但不会建立 USB 数据链路。
+- Windows 必须为枚举出的 USB 网络设备绑定 RNDIS 驱动。
+
+Windows 驱动安装步骤：
+
+1. 使用数据线连接 Windows 主机和开发板 USB OTG 接口。
+2. 打开“设备管理器”，找到带黄色警告或尚未正确识别的 USB/RNDIS 设备。
+3. 右键选择“更新驱动程序”。
+4. 选择“浏览我的电脑以查找驱动程序”。
+5. 选择“让我从计算机上的可用驱动程序列表中选取”。
+6. 设备类型选择“网络适配器”，厂商选择 Microsoft。
+7. 选择 USB RNDIS Adapter。部分 Windows 版本可能显示为 Remote NDIS Compatible Device。
+8. 安装完成后重新拔插 OTG 数据线，确认网络适配器无黄色警告。
+
+优先使用 Windows 内置 RNDIS 驱动，不从不明网站下载第三方 INF。
+
+验证命令：
+
+    # 板端本地终端
+    ip addr show usb0
+    cat /sys/class/net/usb0/carrier
+
+    # WSL
+    ping -c 4 192.168.7.2
+    ssh debian@192.168.7.2 'ip addr show usb0'
+
+成功标志：
+
+    usb0: <BROADCAST,MULTICAST,UP,LOWER_UP>
+    carrier: 1
+    inet 192.168.7.2/30
+
+踩坑结论：
+
+- 接到 USB HOST 口时，Windows 不会把开发板识别为 RNDIS gadget。
+- 仅充电线或不稳定线材可能让 usb0 保持 NO-CARRIER。
+- Windows 发现设备但未绑定 RNDIS 驱动时，不会出现可用 USB 网络适配器。
+- 固定排查顺序：OTG 接口 -> 数据线 -> Windows 驱动 -> usb0 carrier -> IP/SSH。此时不要先修改应用代码。
+
 WSL artifact check:
 
 ```text

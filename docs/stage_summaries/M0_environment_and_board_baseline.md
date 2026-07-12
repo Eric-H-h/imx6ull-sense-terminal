@@ -67,12 +67,15 @@ exit:0
 
 - M0 后默认板端连接改为 USB RNDIS `192.168.7.2`。
 - Wi-Fi `192.168.18.210` 不再作为默认部署路径，因为它出现丢包、SSH 超时和 `No route to host`。
+- USB RNDIS 必须连接开发板 USB OTG 接口，并使用支持数据传输的 USB 线；Windows 侧需要正确绑定 `USB RNDIS Adapter`。
+- 网络排查固定按照“OTG 接口 -> 数据线 -> Windows 驱动 -> `usb0` carrier -> IP/SSH”的顺序进行。
 - 只有在板端 ARM 程序返回 `exit:0` 后，M0 才算关闭。
 - M1 应从新的里程碑分支 `codex/m1-uvc-capture` 开始。
 
 ## 已更新文档
 
 - `docs/01_bringup.md`：补充 USB RNDIS、SCP 和板端运行真实日志。
+- `docs/reference/git_workflow.md`：记录 WSL 内 Git 命令、里程碑分支和提交检查流程。
 - `docs/plans/plan_v0.3_mvp_execution.md`：记录 UVC-first 路线和 Git 工作流规则。
 - `docs/stage_summaries/M0_environment_and_board_baseline.md`：本阶段总结。
 - `docs/bug_reports/M0-NET-WIFI-001_usb_rndis_board_link.md`：M0 网络 bug 复盘。
