@@ -2,7 +2,7 @@
 
 ## 当前边界
 
-项目运行在野火 EBF6ULL S1 Pro / i.MX6ULL 开发板上。当前处于 M2 验收前，已经落地的主链路是：
+项目运行在野火 EBF6ULL S1 Pro / i.MX6ULL 开发板上。M2 已完成验收，当前落地的主链路是：
 
 ```text
 USB UVC 摄像头

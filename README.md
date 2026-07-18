@@ -19,12 +19,12 @@ USB UVC 摄像头
 
 - M0 环境、交叉编译、部署和板端运行：已完成。
 - M1 USB UVC 枚举、格式确认和 MJPG 首帧：已完成。
-- M2 V4L2 MJPEG 采集与 HTTP stream：代码实现后审查和验收中。
+- M2 V4L2 MJPEG 采集与 HTTP stream：验收完成，等待 PR 合入 `develop`。
 - M3 motion event、M4 systemd、M5 发布包装：未开始。
 
 当前分支：`codex/m2-mjpeg-stream`。
 
-M2 只有在代码审查、主机和 ARM 构建、板端接口、浏览器画面、重连及 30 分钟稳定性证据全部完成后才能关闭。
+M2 已完成代码审查、主机和 ARM 构建、板端接口、浏览器画面、重连及超过 30 分钟的稳定性验证。M2 PR 合入 `develop` 后再创建 M3 分支。
 
 ## 仓库入口
 
