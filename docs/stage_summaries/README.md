@@ -46,3 +46,4 @@ M5_resume_demo_packaging.md
 | --- | --- | --- |
 | M0 | [M0 环境与板端基线](M0_environment_and_board_baseline.md) | 已完成 |
 | M1 | [M1 USB UVC 摄像头采集](M1_usb_uvc_camera_capture.md) | 已完成 |
+| M2 | [M2 MJPEG 浏览器推流](M2_mjpeg_browser_stream.md) | 已完成 |

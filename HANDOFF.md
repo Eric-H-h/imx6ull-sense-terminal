@@ -16,17 +16,17 @@ Git 命令必须在 WSL 路径执行。
 - 当前分支：`codex/m2-mjpeg-stream`。
 - M0：Completed。
 - M1：Completed，并已合入 `develop`。
-- M2：In Progress，代码实现后审查和板端验收前。
+- M2：Completed，代码和板端验收通过，等待 PR 合入 `develop`。
 - M3-M5：未开始。
 - 默认摄像头路线：USB UVC。
 - OV5640：MVP 后可选增强项。
 - 默认板端连接：`debian@192.168.7.2`，USB RNDIS。
 
-当前工作区包含尚未提交的 M2 源码和文档重构改动。不要删除来源不明的文件，不要切分支，不要执行 `git add .`。
+M2 功能代码已提交为 `b31be00`，阶段收尾文档待提交。不要删除来源不明的文件，不要执行 `git add .`。
 
 ## 当前实现边界
 
-已实现但仍待完整验收：
+M2 已实现并通过验收：
 
 - 动态选择 `uvcvideo + Video Capture + Streaming` 节点。
 - V4L2 MJPEG MMAP 采集。
@@ -36,7 +36,6 @@ Git 命令必须在 WSL 路径执行。
 
 未实现或未完成：
 
-- M2 完整代码修复和板端验收。
 - M3 motion detection 和 JSONL event log。
 - M4 systemd 正式部署和故障注入。
 - OV5640 CSI/DVP。
@@ -45,18 +44,14 @@ Git 命令必须在 WSL 路径执行。
 
 ## 下一步唯一主线
 
-完成 M2，不进入 M3：
+收尾 M2，不提前进入 M3：
 
-1. 结束当前 M2 代码审查并修复阻塞问题。
-2. 主机干净构建和 ARM 交叉编译。
-3. 通过 USB RNDIS 部署到板端。
-4. 验证 `/`、`/status`、`/stream` 协议和浏览器动态画面。
-5. 验证刷新、断开、重连、camera missing 和恢复。
-6. 运行 30 分钟并记录 FPS、CPU、RSS 和内核日志。
-7. 更新 M2 evidence、Bug 索引和 M2 阶段总结。
-8. 核对提交范围后再 commit、push 和创建 M2 MR/PR。
+1. 先将文档架构迁移 PR 合入 `develop`。
+2. 再将 M2 源码和阶段收尾文档 PR 合入 `develop`。
+3. 本地更新到最新 `develop`。
+4. 从 `develop` 创建 `codex/m3-motion-event`，开始 M3 输入方案评估。
 
-命令和验收表见 [M2 操作指南](docs/how-to/run-mjpeg-stream.md) 与 [M2 evidence](docs/verification/evidence/M2_mjpeg_stream.md)。
+M2 结果见 [M2 evidence](docs/verification/evidence/M2_mjpeg_stream.md) 与 [M2 阶段总结](docs/stage_summaries/M2_mjpeg_browser_stream.md)。
 
 ## 必读入口
 

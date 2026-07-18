@@ -61,6 +61,7 @@ M4-SVC-SYSTEMD-001_restart_policy_not_applied.md
 | --- | --- | --- | --- | --- | --- | --- |
 | M0-NET-WIFI-001 | M0 | 网络 / 部署 | 是，直到 USB RNDIS 修复 | Wi-Fi 路径不稳定；USB RNDIS 初期受数据线和 Windows 驱动绑定影响 | M0 已解决 | [M0-NET-WIFI-001](M0-NET-WIFI-001_usb_rndis_board_link.md) |
 | M1-DRV-PXP-001 | M1 | 内核 / V4L2 / PXP | 否，UVC 路径可绕过 | 查询 PXP Video Output 节点时触发内核 Oops | Mitigated，根因待确认 | [M1-DRV-PXP-001](M1-DRV-PXP-001_pxp_query_kernel_oops.md) |
+| M2-NET-PROXY-001 | M2 | WSL 网络 / HTTP 验证 | 是，直到绕过代理 | SOCKS 代理接管 RNDIS 私网 HTTP 请求，导致 curl 超时 | Resolved | [M2-NET-PROXY-001](M2-NET-PROXY-001_wsl_proxy_bypasses_rndis.md) |
 
 ## 当前需关注风险
 
@@ -70,3 +71,4 @@ M4-SVC-SYSTEMD-001_restart_policy_not_applied.md
 | Windows Git 通过 UNC 路径访问 WSL 仓库时可能误判文件状态 | 全阶段 | Git 命令统一在 WSL 内部 `/home/eric/projects/imx6ull-sense-terminal` 下执行 |
 | UVC 摄像头可能暴露意外格式或设备编号 | M1 | 先做枚举和一帧采集，再写大段 V4L2 代码 |
 | PXP V4L2 查询路径会触发内核 Oops | M1 及后续 | 不把 PXP 输出节点当作摄像头；需要 PXP 时另行定位 BSP 驱动 |
+| WSL 代理可能接管板端私网请求 | M2-M5 | curl 使用 `--noproxy 192.168.7.2`，并配置 `NO_PROXY` |

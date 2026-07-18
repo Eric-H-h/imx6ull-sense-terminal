@@ -2,7 +2,7 @@
 
 ## 状态
 
-M2 验收中。本页命令描述当前实现入口；只有写入 [M2 验收证据](../verification/evidence/M2_mjpeg_stream.md) 的结果才算已验证事实。
+M2 已完成验收。本页保留可重复操作命令；真实结果见 [M2 验收证据](../verification/evidence/M2_mjpeg_stream.md)。
 
 ## 构建和部署
 
@@ -22,9 +22,12 @@ ssh debian@192.168.7.2 '/tmp/imx6ull-sense -c /tmp/config.json'
 ## 检查接口
 
 ```sh
-curl http://192.168.7.2:8080/status
-curl -I http://192.168.7.2:8080/
-curl --max-time 2 \
+export no_proxy="127.0.0.1,localhost,192.168.7.2"
+export NO_PROXY="$no_proxy"
+
+curl --noproxy 192.168.7.2 http://192.168.7.2:8080/status
+curl --noproxy 192.168.7.2 -D - -o /dev/null http://192.168.7.2:8080/
+curl --noproxy 192.168.7.2 --max-time 2 \
   -D /tmp/m2-stream.headers \
   -o /tmp/m2-stream.bin \
   http://192.168.7.2:8080/stream

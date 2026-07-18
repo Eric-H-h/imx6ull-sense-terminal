@@ -2,10 +2,10 @@
 
 ## 状态
 
-- 当前里程碑：M2，MJPEG 浏览器推流。
+- 当前里程碑：M2，MJPEG 浏览器推流，验收完成并等待合并。
 - 当前分支：`codex/m2-mjpeg-stream`。
 - 已完成：M0、M1。
-- 当前阶段状态：代码实现后审查和板端验收前。
+- 当前阶段状态：Completed；M2 PR 合入 `develop` 前不进入 M3。
 - MVP 路线：USB UVC first；OV5640 为可选增强项。
 - 目标发布时间：2026 年 7 月底前完成 MVP。
 
@@ -51,7 +51,7 @@ MVP 不包含：
 | --- | --- | --- | --- |
 | M0 | 主机、交叉编译、板端部署闭环 | Completed | [M0 summary](../stage_summaries/M0_environment_and_board_baseline.md) |
 | M1 | UVC 枚举、格式和真实首帧 | Completed | [M1 summary](../stage_summaries/M1_usb_uvc_camera_capture.md) |
-| M2 | 浏览器 MJPEG 和状态接口 | In Progress | [M2 evidence](../verification/evidence/M2_mjpeg_stream.md) |
+| M2 | 浏览器 MJPEG 和状态接口 | Completed | [M2 summary](../stage_summaries/M2_mjpeg_browser_stream.md) |
 | M3 | motion event 与 JSONL | Planned | [M3 evidence](../verification/evidence/M3_motion_event.md) |
 | M4 | systemd 与故障注入 | Planned | [M4 evidence](../verification/evidence/M4_fault_injection.md) |
 | M5 | 测试报告、演示和发布 | Planned | [test report](../verification/test-report.md) |
@@ -60,7 +60,7 @@ MVP 不包含：
 
 ### 目标
 
-把已经实现的 UVC MJPEG、共享最新帧和 HTTP 模块修正并验收到可演示状态。
+把 UVC MJPEG、共享最新帧和 HTTP 模块修正并验收到可演示状态。该目标已于 2026-07-18 完成。
 
 ### 当前实现
 
@@ -70,7 +70,7 @@ MVP 不包含：
 - `GET /`、`GET /stream`、`GET /status`。
 - 摄像头缺失 degraded 和自动重试。
 
-上述能力仍需完成代码审查和板端验证，不能仅凭源码存在标记 M2 完成。
+上述能力已完成代码审查、板端验证、浏览器验证和稳定性测试，结果见 M2 evidence 与阶段总结。
 
 M2 的输入实现可以保持 UVC/MJPEG 专用，不要求为 OV5640 提前重构。架构只要求未来帧模型能够表达 pixel format、宽高、stride/bytesused、sequence 和 timestamp；第二个真实输入出现后再提取 CameraSource seam，见 ADR-0006。
 
