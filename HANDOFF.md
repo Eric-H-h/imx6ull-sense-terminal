@@ -1,321 +1,86 @@
-# HANDOFF — i.MX6ULL Sense Terminal
+# HANDOFF：i.MX6ULL Sense Terminal
 
-这份交接文档用于新的主线 Codex/Claude session 继续推进项目。
+本文件给继续主线执行的 session 提供当前事实和唯一下一步。详细知识通过链接进入对应事实源，不在本文件复制完整日志。
 
-项目路径：
-
-```text
-WSL 路径:     /home/eric/projects/imx6ull-sense-terminal
-Windows 路径: \\wsl.localhost\Ubuntu\home\eric\projects\imx6ull-sense-terminal
-```
-
-## 1. 当前目标
-
-在野火 EBF6ULL S1 Pro / i.MX6ULL eMMC 开发板上完成一个小而完整的嵌入式 Linux 简历项目。
-
-项目要能真实上板运行、能浏览器演示、能产生可复盘的日志和测试证据。不要扩展成大型视频监控平台，价值在于一个板端可验证、可解释、可靠的嵌入式 Linux 服务闭环。
-
-MVP 目标链路：
+## 项目路径
 
 ```text
-V4L2 摄像头 / UVC 采集
-  -> JPEG/MJPEG 浏览器推流
-  -> 简单 motion event 检测
-  -> 本地事件日志
-  -> systemd restart/watchdog 行为
-  -> 故障注入文档
+WSL: /home/eric/projects/imx6ull-sense-terminal
+Windows: \\wsl.localhost\Ubuntu\home\eric\projects\imx6ull-sense-terminal
 ```
 
-## 2. 当前仓库状态
-
-仓库已在 WSL 路径下创建并完成 M0 初始化。这个仓库的 Git 操作必须优先在 WSL 内部执行；Windows Git 通过 UNC 路径访问 WSL 仓库时可能误判 modified 文件。
-
-完整 Git 命令、里程碑分支和提交检查流程见 `docs/reference/git_workflow.md`。
-
-Git 状态：
-
-- 当前工作分支：`codex/m1-uvc-capture`
-- 集成分支：`develop`
-- M0 初始化已提交。
-- 当前已知基础提交：
-  - `8408572 docs: add git workflow rules to execution plan`
-  - `d999cb6 chore: initialize imx6ull sense terminal project`
-- 本 session 暂未 push remote/origin。
-
-主要文件：
-
-```text
-README.md
-HANDOFF.md
-.gitignore
-app/daemon/main.c
-app/daemon/Makefile
-config/config.json
-systemd/imx6ull-sense.service
-scripts/deploy_placeholder.sh
-docs/00_current_environment.md
-docs/01_bringup.md
-docs/02_camera_capture.md
-docs/03_mjpeg_stream.md
-docs/04_motion_event.md
-docs/05_fault_injection.md
-docs/test_report.md
-docs/interview_qa.md
-docs/beginner_guide.md
-docs/stage_summaries/README.md
-docs/stage_summaries/M0_environment_and_board_baseline.md
-docs/bug_reports/README.md
-docs/bug_reports/M0-NET-WIFI-001_usb_rndis_board_link.md
-docs/plans/plan_v0.1_baseline.md
-docs/plans/plan_v0.2_open_source_route.md
-docs/plans/plan_v0.3_mvp_execution.md
-docs/reference/ustreamer_notes.md
-docs/reference/mjpg_streamer_notes.md
-docs/reference/motion_notes.md
-docs/reference/design_decisions.md
-docs/reference/benchmark_against_open_source.md
-docs/reference/local_board_documents.md
-docs/reference/git_workflow.md
-```
+Git 命令必须在 WSL 路径执行。
 
-本地忽略产物：
+## 当前状态
 
-```text
-app/daemon/imx6ull-sense
-app/daemon/main.o
-secrets.local.md
-```
+- 当前分支：`codex/m2-mjpeg-stream`。
+- M0：Completed。
+- M1：Completed，并已合入 `develop`。
+- M2：In Progress，代码实现后审查和板端验收前。
+- M3-M5：未开始。
+- 默认摄像头路线：USB UVC。
+- OV5640：MVP 后可选增强项。
+- 默认板端连接：`debian@192.168.7.2`，USB RNDIS。
 
-## 3. 已确认环境事实
+当前工作区包含尚未提交的 M2 源码和文档重构改动。不要删除来源不明的文件，不要切分支，不要执行 `git add .`。
 
-WSL 可用：
+## 当前实现边界
 
-```text
-Ubuntu on WSL2
-Linux ERICHOU 6.6.87.2-microsoft-standard-WSL2
-```
+已实现但仍待完整验收：
 
-WSL 构建工具已安装并验证。ARM scaffold 已完成交叉编译，并已在板端运行成功。
+- 动态选择 `uvcvideo + Video Capture + Streaming` 节点。
+- V4L2 MJPEG MMAP 采集。
+- AppState 最新 JPEG 和运行状态。
+- `GET /`、`GET /stream`、`GET /status`。
+- 摄像头失败 degraded 和重新扫描。
 
-M0 后默认板端连接：
+未实现或未完成：
 
-```text
-USB RNDIS: debian@192.168.7.2
-```
+- M2 完整代码修复和板端验收。
+- M3 motion detection 和 JSONL event log。
+- M4 systemd 正式部署和故障注入。
+- OV5640 CSI/DVP。
 
-RNDIS 硬性接线要求：开发板必须使用 USB OTG 接口，并使用支持数据传输的 USB 线。Windows 侧需要正确绑定 `USB RNDIS Adapter`；普通 USB HOST 接口或仅充电线不能建立该链路。
+`/status` 中的 motion 字段在 M3 前是占位值，不代表 motion 已实现。
 
-之前的 Wi-Fi 路径 `192.168.18.210` 不稳定，不再作为默认部署路径。
+## 下一步唯一主线
 
-相关记录：
+完成 M2，不进入 M3：
 
-```text
-docs/00_current_environment.md
-docs/beginner_guide.md
-docs/01_bringup.md
-docs/stage_summaries/M0_environment_and_board_baseline.md
-docs/bug_reports/M0-NET-WIFI-001_usb_rndis_board_link.md
-```
+1. 结束当前 M2 代码审查并修复阻塞问题。
+2. 主机干净构建和 ARM 交叉编译。
+3. 通过 USB RNDIS 部署到板端。
+4. 验证 `/`、`/status`、`/stream` 协议和浏览器动态画面。
+5. 验证刷新、断开、重连、camera missing 和恢复。
+6. 运行 30 分钟并记录 FPS、CPU、RSS 和内核日志。
+7. 更新 M2 evidence、Bug 索引和 M2 阶段总结。
+8. 核对提交范围后再 commit、push 和创建 M2 MR/PR。
 
-## 4. 新 session 首先要做什么
+命令和验收表见 [M2 操作指南](docs/how-to/run-mjpeg-stream.md) 与 [M2 evidence](docs/verification/evidence/M2_mjpeg_stream.md)。
 
-从 WSL 内部进入仓库：
+## 必读入口
 
-```sh
-cd /home/eric/projects/imx6ull-sense-terminal
-git status
-```
+1. [当前计划](docs/plans/current.md)
+2. [架构总览](docs/architecture/overview.md)
+3. [组件说明](docs/architecture/components.md)
+4. [Git 工作流](docs/how-to/git-workflow.md)
+5. [本地板级资料](docs/reference/hardware/local-board-documents.md)
+6. [Bug 索引](docs/bug_reports/README.md)
 
-当前应处于 M1 分支：
+## 硬件和 Bug 约束
 
-```text
-## codex/m1-uvc-capture
-```
+- 涉及 EBF6ULL 接口、pinout、USB、CSI、时钟、电源或设备树时，先查本地资料，原理图作为板级事实源。
+- 不把 `/dev/videoX` 编号当作稳定身份；按 driver 和 Device Caps 选择 UVC 图像节点。
+- 当前 BSP 查询 PXP Video Output 节点曾触发内核 Oops，不要把 PXP 节点当作摄像头。
+- 网络失败按 OTG 接口、数据线、Windows RNDIS、`usb0` carrier、IP/SSH 的顺序排查。
 
-使用 USB RNDIS 确认板端可达：
+## 文档纪律
 
-```sh
-ping -c 4 192.168.7.2
-ssh debian@192.168.7.2 'uname -a; ip addr show usb0'
-```
+- 实际命令和输出：`docs/verification/evidence/`。
+- 阶段完成结论：`docs/stage_summaries/`。
+- 学习型调试复盘：`docs/bug_reports/`。
+- 正式运行事故：`docs/operations/postmortems/`。
+- 当前执行顺序：`docs/plans/current.md`。
+- 路线和长期选择原因：`docs/architecture/decisions/`。
 
-不要在 M1 完成前进入 M2/MJPEG 实现。M1 必须先有真实 UVC 枚举和一帧采集证据。
-
-M1 首批命令：
-
-```sh
-ssh debian@192.168.7.2 'ls -l /dev/video*; v4l2-ctl --list-devices'
-ssh debian@192.168.7.2 'v4l2-ctl -d /dev/videoX --list-formats-ext'
-ssh debian@192.168.7.2 'v4l2-ctl -d /dev/videoX --stream-mmap --stream-count=1 --stream-to=/tmp/m1_first_frame.yuv; ls -l /tmp/m1_first_frame.yuv; wc -c /tmp/m1_first_frame.yuv'
-```
-
-把真实输出写入：
-
-```text
-docs/02_camera_capture.md
-```
-
-## 5. 开源参考策略
-
-项目参考成熟开源项目的架构和工程取舍，但不复制其代码。
-
-参考对象：
-
-- uStreamer / PiKVM：轻量 V4L2 MJPEG HTTP daemon。
-- mjpg-streamer：嵌入式 MJPEG streaming 的 input/output 分离。
-- Motion：motion event、threshold 和 cooldown 模型。
-- v4l-utils：V4L2 bring-up 和验证工具。
-- libjpeg-turbo：JPEG 性能参考。
-
-重要规则：
-
-> 开源项目用于架构参考和 benchmark，不直接搬代码；学生 MVP 要自己实现。
-
-避免直接复制 GPL 代码。
-
-## 6. MVP 里程碑
-
-### M0 — 环境与板端基线
-
-交付：
-
-- 构建工具已安装。
-- 当前 scaffold 可在 WSL 构建。
-- 板端登录和传输路径已确认。
-- `docs/01_bringup.md` 已写入真实日志。
-- M0 阶段总结和 bug 复盘已补齐。
-
-状态：已完成。
-
-### M1 — USB UVC 摄像头采集
-
-交付：
-
-- 至少一个 `/dev/videoX` 可用。
-- USB UVC 是 MVP 默认路线。
-- OV5640 作为 UVC 闭环完成后的可选增强项。
-- 记录 `v4l2-ctl --list-devices` 和 `--list-formats-ext`。
-- 捕获一帧真实图像。
-- 更新 `docs/02_camera_capture.md`。
-- 完成后写 `docs/stage_summaries/M1_usb_uvc_camera_capture.md`。
-
-状态：进行中。
-
-### M2 — MJPEG 浏览器推流
-
-交付：
-
-- `GET /` HTML 页面。
-- `GET /stream` MJPEG stream。
-- `GET /status` JSON 状态。
-- 浏览器能看到实时画面。
-- `docs/03_mjpeg_stream.md` 写入 fps/CPU 记录。
-
-### M3 — Motion Event
-
-交付：
-
-- 简单 Y-frame-diff motion detection。
-- JSONL event log。
-- `/status` 展示 motion 状态和 event count。
-- `docs/04_motion_event.md` 更新。
-
-### M4 — systemd 与故障注入
-
-交付：
-
-- `systemd/imx6ull-sense.service` 能在板端运行。
-- `kill -9` 后服务可恢复。
-- reboot 后服务自启动。
-- 摄像头缺失时进入可解释 degraded 状态。
-- 坏配置时 fail-safe。
-- `docs/05_fault_injection.md` 和 `docs/test_report.md` 更新。
-
-## 7. 范围控制规则
-
-硬优先级：
-
-1. 真实板端运行。
-2. 浏览器可见 stream。
-3. motion event log。
-4. systemd / 故障注入证据。
-5. README / demo / 简历包装。
-
-Fallback 规则：
-
-- USB UVC 是 MVP 默认路线。
-- OV5640 可在 UVC 闭环完成后作为 DVP/CSI 增强项尝试。
-- OV5640 两个晚上不通就停止该增强项，继续 UVC MVP。
-- HDMI 卡住一个晚上就放弃 HDMI。
-- libjpeg/JPEG 太慢就降低分辨率、quality 或 fps。
-- systemd 临时卡住时，可短期用 shell watchdog 记录现象，但最终必须回到 systemd。
-- 如果后期浏览器 stream 仍不工作，停止所有可选工作。
-
-MVP 后才考虑的可选项：
-
-- OV5640 DTS/CSI 深挖。
-- HDMI framebuffer 预览。
-- `alarm_gpio` 字符设备驱动。
-- 应用 OTA。
-- TTFF 测量。
-- tiny CNN / NCNN / TFLite。
-
-## 8. 文档纪律
-
-项目使用四层文档：
-
-1. 里程碑证据文档：`docs/01_bringup.md`、`docs/02_camera_capture.md` 等。
-2. 阶段总结：每个完成里程碑在 `docs/stage_summaries/` 下写一份。
-3. bug 复盘：每个 meaningful bug 在 `docs/bug_reports/` 下写一份，并维护跨阶段索引 `docs/bug_reports/README.md`。
-4. 本地板级资料索引：`docs/reference/local_board_documents.md`。
-
-规则：
-
-- 每完成一个里程碑，进入下一阶段实现前必须写阶段总结。
-- 每处理一个 meaningful bug 或 blocker，必须写 bug 复盘，包含现象、日志、原因、修复、验证和状态。
-- 如果某阶段有 bug，阶段总结和 bug 索引都要链接该报告。
-- 真实命令输出保留在里程碑证据文档中，阶段总结只提炼结论。
-- 阶段证据文档和阶段总结未更新前，不要标记该阶段完成。
-- 涉及板级硬件、pinout、启动、CSI、USB、clock、GPIO、电源或设备树的问题，必须先查 `docs/reference/local_board_documents.md`，并记录引用的本地资料。
-
-## 9. 用户工作节奏
-
-用户通常可投入时间：
-
-- 工作日晚上：约 2 小时，有时不可用。
-- 周末：时间更多。
-- DDL 目标：2026 年 7 月底前完成。
-
-计划要保持弹性。优先按里程碑推进，不要做过死的每日排期。
-
-每次工作 session 结束都要记录：
-
-- 本次尝试了什么。
-- 跑了什么命令。
-- 看到了什么输出或日志。
-- 是否满足验收标准。
-- 下一步唯一动作。
-
-## 10. 下一位 agent 的第一动作
-
-1. 读本文件 `HANDOFF.md`。
-2. 读：
-
-```text
-docs/plans/plan_v0.3_mvp_execution.md
-docs/reference/local_board_documents.md
-docs/reference/git_workflow.md
-docs/stage_summaries/README.md
-docs/bug_reports/README.md
-docs/02_camera_capture.md
-```
-
-3. 确认当前分支是 `codex/m1-uvc-capture`。
-4. 使用 USB RNDIS `192.168.7.2` 验证板端可达。
-5. 插入 USB UVC 摄像头后执行 M1 枚举和一帧采集命令。
-6. 把真实输出写入 `docs/02_camera_capture.md`。
-7. 如果出现 blocker，创建独立 bug 报告并更新 `docs/bug_reports/README.md`。
-8. M1 完成后写 `docs/stage_summaries/M1_usb_uvc_camera_capture.md`。
-
-不要在 M1 真实枚举和一帧采集完成前直接写 MJPEG/V4L2 大段实现。
-
+不要再引用迁移前的根级编号文档、版本化当前计划或集中式设计决策汇总；所有入口以 `docs/README.md` 为准。

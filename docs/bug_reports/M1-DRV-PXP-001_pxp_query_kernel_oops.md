@@ -81,9 +81,34 @@ UVC 绕过路径已完成 `MJPG 640x480@30 fps` 的真实一帧采集。PXP 查�
 
 ## 本地资料检查
 
-- 已按规则检查 `docs/reference/local_board_documents.md` 的资料优先级。
+- 已按规则检查 [本地板级资料索引](../reference/hardware/local-board-documents.md) 的资料优先级。
 - 当前证据来自板端 V4L2 枚举和内核日志；尚未定位到本地教程或原理图中的 PXP V4L2 专门章节/页码。
 - 后续若进入根因修复，应优先查阅当前 4.19.35-imx6 BSP 的 PXP V4L2 驱动源码。
+
+## 我当时的错误判断
+
+最初按常见习惯直接把 `/dev/video0` 当作摄像头节点并执行通用查询，没有先确认驱动名、节点方向和 Device Caps。实际上 `/dev/video0` 是 PXP Video Output，UVC 图像节点位于动态编号的其他 `/dev/videoX`。
+
+内核 Oops 只能证明 PXP 查询路径存在异常，不能据此认定 UVC 摄像头、`v4l2-ctl` 或某个具体指针一定是根因。根因证据不足时保持 Mitigated，而不是写成已修复。
+
+## 正确排查顺序
+
+1. 使用 `v4l2-ctl --list-devices` 建立设备与节点映射。
+2. 对候选节点先执行 `v4l2-ctl -D`，确认 driver 和 Device Caps。
+3. 只把 `uvcvideo + Video Capture + Streaming` 节点交给 UVC 采集链路。
+4. 单独区分 Metadata Capture、Video Output、CSI 和 PXP 节点。
+5. 发生内核 Oops 后先重启，再保存完整 `dmesg` 和最小复现命令。
+6. 只有主线必须依赖 PXP 时，才对照 BSP 驱动源码继续根因定位。
+
+## 可复用经验
+
+- `/dev/videoX` 编号不是稳定身份，必须依据驱动和 capability 选择节点。
+- V4L2 同时包含 capture、output、metadata 等不同节点，不能对所有节点套用同一查询和采集流程。
+- 绕过路径验收通过不等于底层缺陷已经修复，报告状态必须区分 Fixed 和 Mitigated。
+
+## 面试可讲内容
+
+查询默认编号的 V4L2 节点触发了 BSP 内核 Oops。通过能力枚举发现该节点属于 PXP Video Output，而真正的 UVC 图像节点是动态编号的 `uvcvideo Video Capture`。项目随后改为按 driver 和 Device Caps 动态选取设备，既完成了 UVC 主线，也诚实保留了 PXP 根因未关闭的风险。
 
 ## Follow-up
 

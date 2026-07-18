@@ -96,7 +96,7 @@ M0 部署路径从 Wi-Fi 切换为 USB RNDIS。
 6. 确认板端 `usb0` 为 `LOWER_UP`、carrier 为 `1`，并使用板端地址 `192.168.7.2`。
 7. 通过 USB RNDIS 重新验证 ping、SSH、SCP 和板端执行。
 
-详细安装和验证命令见 `docs/01_bringup.md` 的“Windows 侧 RNDIS 驱动安装与接线”。
+详细安装和验证命令见 [M0 bring-up evidence](../verification/evidence/M0_bringup.md) 的“Windows 侧 RNDIS 驱动安装与接线”，稳定操作步骤见 [连接和部署开发板](../how-to/connect-and-deploy-board.md)。
 
 ## 验证结果
 
@@ -155,3 +155,28 @@ debian@192.168.7.2
 - USB RNDIS 必须使用开发板 OTG 接口和支持数据传输的 USB 线。
 - 如果 SSH/SCP 再次失败，按“OTG 接口 -> 数据线 -> Windows RNDIS 驱动 -> `usb0` carrier -> IP 地址”的顺序检查，再考虑应用代码。
 - 后续网络问题要创建新的 bug 报告，不再混入本 M0 报告。
+
+## 我当时的错误判断
+
+最初把 SSH/SCP 失败主要当成 Wi-Fi 地址或路由问题，切换 USB 后又容易继续从 IP 配置排查，没有先确认物理连接是否真的建立。ARM 二进制当时已经能够构建，应用代码不是阻塞点。
+
+真正改变判断的证据是板端 `usb0` 的 `NO-CARRIER`、更换数据线后的枚举变化，以及 Windows 正确绑定 RNDIS 驱动后 `LOWER_UP` 和稳定 ping 同时出现。
+
+## 正确排查顺序
+
+1. 确认连接开发板 USB OTG 接口，而不是 USB HOST。
+2. 确认 USB 线明确支持数据传输，并通过更换线材排除物理问题。
+3. 查看 Windows 设备管理器是否枚举设备并正确绑定 RNDIS 驱动。
+4. 查看板端 `usb0` 是否为 `LOWER_UP`、carrier 是否为 `1`。
+5. 核对主机和板端 IP，再依次验证 ping、SSH、SCP。
+6. 只有传输链路稳定后，才检查应用二进制、权限和运行参数。
+
+## 可复用经验
+
+- USB 网络、串口或调试器异常时，先验证接口、线材、枚举和驱动，再检查上层协议。
+- “设备已供电”不等于“数据链路已建立”，仅充电线也可能让问题看起来像网络配置错误。
+- 部署链路必须先形成独立闭环，不能把网络问题和应用问题混在一起定位。
+
+## 面试可讲内容
+
+在 i.MX6ULL 部署阶段，Wi-Fi 高丢包导致 SSH/SCP 不稳定；切换 USB 后又遇到 OTG 接口、数据线和 Windows RNDIS 驱动三个条件未同时满足。通过 `usb0` carrier、Windows 枚举和分层连通性测试定位后，最终建立 `192.168.7.2` 的稳定部署链路，并把排查顺序固化为项目规则。

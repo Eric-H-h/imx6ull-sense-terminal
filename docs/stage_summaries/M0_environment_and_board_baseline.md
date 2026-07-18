@@ -18,13 +18,13 @@ M0 不包含摄像头采集、MJPEG 推流、运动检测、systemd 强化或故
 
 | 检查项 | 结果 | 证据 |
 | --- | --- | --- |
-| WSL 构建工具可用 | 通过 | `make`、`gcc`、`git` 已记录在 `docs/01_bringup.md` |
+| WSL 构建工具可用 | 通过 | `make`、`gcc`、`git` 已记录在 [M0 evidence](../verification/evidence/M0_bringup.md) |
 | 主机侧 scaffold 可编译运行 | 通过 | `app/daemon/imx6ull-sense` scaffold 输出已记录 |
 | ARM 交叉编译可用 | 通过 | `file app/daemon/imx6ull-sense` 显示 ARM EABI5 可执行文件 |
 | 主机可访问板端 | 通过 | USB RNDIS ping `192.168.7.2` 为 0% 丢包 |
 | 文件传输路径可用 | 通过 | `scp` 二进制和配置到 `/tmp`，退出码为 0 |
 | 板端可运行 scaffold | 通过 | 板端输出 scaffold 日志并返回 `exit:0` |
-| 真实日志已归档 | 通过 | `docs/01_bringup.md` 已包含 USB RNDIS 和板端运行日志 |
+| 真实日志已归档 | 通过 | [M0 evidence](../verification/evidence/M0_bringup.md) 已包含 USB RNDIS 和板端运行日志 |
 
 ## 关键证据
 
@@ -63,6 +63,10 @@ exit:0
 | --- | --- | --- | --- |
 | M0-NET-WIFI-001 | Wi-Fi/SSH/SCP 链路不稳定，USB RNDIS 初期受数据线和 Windows 驱动绑定影响 | M0 已绕过并解决 | [bug 复盘](../bug_reports/M0-NET-WIFI-001_usb_rndis_board_link.md) |
 
+## 实际运行事故
+
+无。M0 是环境和板端基线搭建阶段，尚未进入服务长期运行。
+
 ## 关键决策
 
 - M0 后默认板端连接改为 USB RNDIS `192.168.7.2`。
@@ -74,9 +78,9 @@ exit:0
 
 ## 已更新文档
 
-- `docs/01_bringup.md`：补充 USB RNDIS、SCP 和板端运行真实日志。
-- `docs/reference/git_workflow.md`：记录 WSL 内 Git 命令、里程碑分支和提交检查流程。
-- `docs/plans/plan_v0.3_mvp_execution.md`：记录 UVC-first 路线和 Git 工作流规则。
+- `docs/verification/evidence/M0_bringup.md`：保存 USB RNDIS、SCP 和板端运行真实日志。
+- `docs/how-to/git-workflow.md`：记录 WSL 内 Git 命令、里程碑分支和提交检查流程。
+- `docs/plans/current.md`：维护当前执行顺序；UVC-first 原因见 ADR-0001。
 - `docs/stage_summaries/M0_environment_and_board_baseline.md`：本阶段总结。
 - `docs/bug_reports/M0-NET-WIFI-001_usb_rndis_board_link.md`：M0 网络 bug 复盘。
 - `docs/bug_reports/README.md`：跨阶段 bug 索引。
@@ -116,4 +120,4 @@ v4l2-ctl --list-devices
 v4l2-ctl --list-formats-ext -d /dev/video0
 ```
 
-完成枚举后，抓取一帧真实图像，并把命令、输出和生成文件记录到 `docs/02_camera_capture.md`。
+完成枚举后，抓取一帧真实图像，并把命令和输出记录到 `docs/verification/evidence/M1_uvc_capture.md`。
