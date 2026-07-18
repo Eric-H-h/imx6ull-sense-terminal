@@ -23,7 +23,7 @@ M1 不包含应用内 V4L2 采集模块、HTTP 服务、运动检测、录像、
 | 支持格式可枚举 | 通过 | `VIDIOC_ENUM_FMT` 列出 MJPG 和 YUYV |
 | 显式选择轻量采集格式 | 通过 | `MJPG 640x480@30 fps` |
 | 真实一帧采集 | 通过 | `/tmp/m1_first_frame.jpg` 已生成并由操作者验证 |
-| M1 日志与 bug 记录 | 通过 | `docs/02_camera_capture.md` 和 M1 PXP bug 报告已更新 |
+| M1 日志与 bug 记录 | 通过 | [M1 evidence](../verification/evidence/M1_uvc_capture.md) 和 M1 PXP bug 报告已更新 |
 
 ## 关键证据
 
@@ -68,6 +68,10 @@ v4l2-ctl -d "$VIDEO_DEV" \
 | --- | --- | --- | --- |
 | M1-DRV-PXP-001 | 查询 PXP Video Output 节点时触发内核 Oops | Mitigated；UVC 绕过已验证，PXP 根因待确认 | [bug 复盘](../bug_reports/M1-DRV-PXP-001_pxp_query_kernel_oops.md) |
 
+## 实际运行事故
+
+无。M1 是摄像头 bring-up 和首帧验收阶段，PXP Oops 作为开发调试 Bug 记录，不归类为已部署服务事故。
+
 ## 关键决策
 
 - MVP 继续采用 UVC-first，不在 M1 切换到 CSI/OV5640。
@@ -85,7 +89,7 @@ v4l2-ctl -d "$VIDEO_DEV" \
 
 ## 已更新文档
 
-- `docs/02_camera_capture.md`：记录节点映射、格式能力、首帧命令和验收结果。
+- `docs/verification/evidence/M1_uvc_capture.md`：记录节点映射、格式能力、首帧命令和验收结果。
 - `docs/bug_reports/M1-DRV-PXP-001_pxp_query_kernel_oops.md`：记录 PXP Oops、绕过方式和验证。
 - `docs/bug_reports/README.md`：登记 M1 PXP bug。
 - `docs/stage_summaries/M1_usb_uvc_camera_capture.md`：本阶段总结。

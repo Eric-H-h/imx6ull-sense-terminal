@@ -1,66 +1,57 @@
 # i.MX6ULL Sense Terminal
 
-嵌入式 Linux 智能感知与设备运维终端。
-
-本项目面向野火 EBF6ULL S1 Pro / i.MX6ULL eMMC 开发板，目标是做出一个小而闭环、可上板运行、可演示、可写进简历的嵌入式 Linux 项目。
+运行在野火 EBF6ULL S1 Pro / i.MX6ULL 上的嵌入式 Linux 智能感知服务。
 
 ## MVP
 
-最小闭环：
-
 ```text
-V4L2 摄像头 / UVC 采集
-        -> JPEG/MJPEG 推流
-        -> 浏览器预览
-        -> motion event
-        -> 本地事件日志
-        -> systemd watchdog/restart
-        -> 故障注入报告
+USB UVC 摄像头
+  -> V4L2 采集
+  -> MJPEG 浏览器预览
+  -> motion event
+  -> JSONL 事件日志
+  -> systemd 与故障注入
 ```
 
-## 为什么不直接使用成熟 streamer？
-
-本项目参考 uStreamer、mjpg-streamer、Motion、v4l-utils 和 libjpeg-turbo 的工程取舍，但最终实现自己的最小闭环版本。
-
-原因：
-
-- 直接使用成熟项目，简历里“自己实现了什么”会变弱。
-- 成熟项目功能太多，不适合第一版落地。
-- 自己实现核心链路能更好地训练 V4L2、socket、多线程、daemon、systemd 和故障注入能力。
-
-## 仓库结构
-
-```text
-app/daemon/       C daemon 骨架，后续放 MVP 模块
-config/           运行时配置示例
-docs/             bring-up、推流、事件、可靠性和面试笔记
-docs/stage_summaries/
-                  每个完成阶段一份总结
-docs/bug_reports/ 每个 meaningful bug 一份复盘，并维护跨阶段汇总
-docs/plans/       已保存项目计划
-docs/reference/   开源参考、本地资料索引和设计决策
-scripts/          构建、部署、辅助脚本
-systemd/          service unit 模板
-```
+项目参考 uStreamer、mjpg-streamer、Motion 和 v4l-utils 的工程取舍，但最终演示使用本仓库实现的最小 daemon。设计原因见 [ADR](docs/architecture/decisions/)。
 
 ## 当前状态
 
-M0 已完成。ARM scaffold 已经交叉编译、复制到 i.MX6ULL 板端，并通过 USB RNDIS `192.168.7.2` 成功运行。
+- M0 环境、交叉编译、部署和板端运行：已完成。
+- M1 USB UVC 枚举、格式确认和 MJPG 首帧：已完成。
+- M2 V4L2 MJPEG 采集与 HTTP stream：代码实现后审查和验收中。
+- M3 motion event、M4 systemd、M5 发布包装：未开始。
 
-当前执行路线：
+当前分支：`codex/m2-mjpeg-stream`。
 
-```text
-M1 USB UVC 摄像头 bring-up
-  -> M2 MJPEG 浏览器推流
-  -> M3 motion event 日志
-  -> M4 systemd 与故障注入
-  -> M5 最终文档和演示包装
-```
+M2 只有在代码审查、主机和 ARM 构建、板端接口、浏览器画面、重连及 30 分钟稳定性证据全部完成后才能关闭。
 
-当前文档规则：
+## 仓库入口
 
-- 每完成一个阶段，在 `docs/stage_summaries/` 写阶段总结。
-- 每处理一个 meaningful bug，在 `docs/bug_reports/` 写独立复盘。
-- 如果某阶段出现 bug，必须同时在阶段总结和 `docs/bug_reports/README.md` 中链接。
-- 涉及板级硬件、pinout、启动、CSI、USB 或设备树的问题，先查 `docs/reference/local_board_documents.md`，不要凭经验猜测。
+| 内容 | 路径 |
+| --- | --- |
+| C daemon | `app/daemon/` |
+| 配置 | `config/config.json` |
+| 文档总入口 | [docs/README.md](docs/README.md) |
+| 当前执行计划 | [docs/plans/current.md](docs/plans/current.md) |
+| 系统架构 | [docs/architecture/overview.md](docs/architecture/overview.md) |
+| 操作指南 | [docs/how-to/](docs/how-to/) |
+| 验收证据 | [docs/verification/evidence/](docs/verification/evidence/) |
+| 阶段总结 | [docs/stage_summaries/](docs/stage_summaries/) |
+| 学习型 Bug | [docs/bug_reports/](docs/bug_reports/) |
+| 运行事故 | [docs/operations/postmortems/](docs/operations/postmortems/) |
+| systemd 模板 | `systemd/` |
 
+## 当前硬件路线
+
+MVP 使用 USB UVC 摄像头。OV5640 只在 UVC 闭环完成后作为可选 DVP/CSI 增强项，不阻塞 M0-M5。
+
+涉及开发板接口、pinout、USB、CSI、时钟、电源或设备树时，先查 [本地板级资料索引](docs/reference/hardware/local-board-documents.md)，并以 EBF6ULL S1 Pro 原理图作为板级事实来源。
+
+## 记录规则
+
+- 每个阶段的真实命令和输出放在 `docs/verification/evidence/`。
+- 每个完成阶段在 `docs/stage_summaries/` 保存结论和证据链接。
+- 值得复盘的搭建或调试问题进入 `docs/bug_reports/`。
+- 正式运行中产生实际影响的事故进入 `docs/operations/postmortems/`。
+- 当前顺序只在 `docs/plans/current.md` 维护，路线原因写 ADR。

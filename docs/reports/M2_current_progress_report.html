@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>M2 MJPEG 浏览器推流：当前任务、代码框架与进度</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #5f6b76;
+      --line: #d7dde3;
+      --surface: #ffffff;
+      --surface-2: #f5f7f9;
+      --success: #147a4b;
+      --success-bg: #eaf7f0;
+      --warning: #946200;
+      --warning-bg: #fff6dc;
+      --risk: #b42318;
+      --risk-bg: #fff0ee;
+      --info: #175cd3;
+      --info-bg: #eef4ff;
+      --code: #111827;
+      --code-bg: #eef1f4;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--surface);
+      font: 15px/1.65 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    a { color: var(--info); }
+    a:focus-visible, button:focus-visible, summary:focus-visible {
+      outline: 3px solid #84adff;
+      outline-offset: 2px;
+    }
+
+    header {
+      border-bottom: 1px solid var(--line);
+      background: var(--surface-2);
+    }
+
+    .wrap {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+    }
+
+    .header-inner { padding: 34px 0 26px; }
+    h1, h2, h3 { line-height: 1.25; }
+    h1 { margin: 0; font-size: clamp(26px, 4vw, 42px); font-weight: 750; }
+    h2 { margin: 0 0 16px; font-size: 24px; }
+    h3 { margin: 24px 0 10px; font-size: 18px; }
+    p { margin: 8px 0; }
+    .subtitle { max-width: 850px; margin-top: 10px; color: var(--muted); font-size: 17px; }
+    .meta { margin-top: 14px; color: var(--muted); font-size: 13px; }
+
+    .executive {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-bottom: 1px solid var(--line);
+    }
+
+    .executive article {
+      min-height: 132px;
+      padding: 18px;
+      border-right: 1px solid var(--line);
+    }
+    .executive article:last-child { border-right: 0; }
+    .executive strong { display: block; margin-top: 6px; font-size: 18px; }
+    .eyebrow {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      text-transform: uppercase;
+    }
+
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.97);
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    nav .wrap { display: flex; gap: 20px; padding: 10px 0; }
+    nav a { color: var(--ink); text-decoration: none; font-size: 13px; font-weight: 650; }
+
+    main { padding: 30px 0 60px; }
+    section { padding: 30px 0; border-bottom: 1px solid var(--line); }
+    section:last-child { border-bottom: 0; }
+
+    .callout {
+      margin: 16px 0;
+      padding: 14px 16px;
+      border-left: 4px solid var(--info);
+      background: var(--info-bg);
+    }
+    .callout.warning { border-color: var(--warning); background: var(--warning-bg); }
+    .callout.risk { border-color: var(--risk); background: var(--risk-bg); }
+    .callout.success { border-color: var(--success); background: var(--success-bg); }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 2px 8px;
+      border: 1px solid currentColor;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .done { color: var(--success); background: var(--success-bg); }
+    .active { color: var(--warning); background: var(--warning-bg); }
+    .pending { color: var(--muted); background: var(--surface-2); }
+    .blocked { color: var(--risk); background: var(--risk-bg); }
+
+    .progress-row {
+      display: grid;
+      grid-template-columns: 210px 1fr auto;
+      align-items: center;
+      gap: 14px;
+      margin: 16px 0;
+    }
+    progress { width: 100%; height: 16px; accent-color: var(--success); }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(130px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+      margin: 22px 0;
+    }
+    .flow-node {
+      position: relative;
+      min-height: 118px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-top: 4px solid var(--info);
+      background: var(--surface);
+    }
+    .flow-node:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -20px;
+      top: 39px;
+      z-index: 2;
+      color: var(--muted);
+      font-size: 22px;
+      font-weight: 800;
+    }
+    .flow-node strong { display: block; margin-bottom: 6px; }
+    .flow-node small { color: var(--muted); }
+
+    .lane {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      border-top: 1px solid var(--line);
+    }
+    .lane:last-child { border-bottom: 1px solid var(--line); }
+    .lane-label { padding: 14px; background: var(--surface-2); font-weight: 750; }
+    .lane-body { padding: 14px; border-left: 1px solid var(--line); }
+
+    .table-wrap { width: 100%; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 760px; }
+    th, td { padding: 11px 12px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+    th { background: var(--surface-2); font-size: 13px; }
+    td p:first-child { margin-top: 0; }
+
+    code, pre {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      color: var(--code);
+    }
+    code { padding: 1px 4px; background: var(--code-bg); border-radius: 3px; }
+    pre {
+      margin: 12px 0;
+      padding: 14px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      background: var(--code-bg);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .tree {
+      padding: 16px;
+      border: 1px solid var(--line);
+      background: var(--surface-2);
+    }
+    .tree ul { margin: 5px 0 5px 22px; padding: 0; list-style: none; }
+    .tree > ul { margin-left: 0; }
+    .tree li { margin: 5px 0; }
+    .tree li::before { content: "└─ "; color: var(--muted); }
+
+    .checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 22px; }
+    .check {
+      display: grid;
+      grid-template-columns: 86px 1fr;
+      gap: 10px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .next-steps {
+      counter-reset: steps;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .next-steps li {
+      counter-increment: steps;
+      display: grid;
+      grid-template-columns: 44px 1fr;
+      gap: 12px;
+      margin: 14px 0;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .next-steps li::before {
+      content: counter(steps);
+      display: grid;
+      width: 34px;
+      height: 34px;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 50%;
+      font-weight: 800;
+    }
+
+    details { margin: 10px 0; border: 1px solid var(--line); }
+    summary { cursor: pointer; padding: 11px 14px; font-weight: 700; background: var(--surface-2); }
+    details > div { padding: 12px 14px; }
+
+    footer {
+      padding: 22px 0 36px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 900px) {
+      .executive { grid-template-columns: 1fr 1fr; }
+      .executive article:nth-child(2) { border-right: 0; }
+      .executive article:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .flow { grid-template-columns: 1fr; }
+      .flow-node:not(:last-child)::after {
+        content: "↓";
+        right: 50%;
+        top: auto;
+        bottom: -24px;
+      }
+      .checklist { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 560px) {
+      .wrap { width: min(100% - 22px, 1180px); }
+      .executive { grid-template-columns: 1fr; }
+      .executive article { border-right: 0; border-bottom: 1px solid var(--line); }
+      .progress-row { grid-template-columns: 1fr; }
+      .lane { grid-template-columns: 1fr; }
+      .lane-body { border-left: 0; border-top: 1px solid var(--line); }
+    }
+
+    @media print {
+      nav { display: none; }
+      body { font-size: 12px; }
+      .wrap { width: 100%; }
+      section { break-inside: avoid; }
+      .flow-node, table, .callout { break-inside: avoid; }
+      a { color: inherit; text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap header-inner">
+      <div class="eyebrow">i.MX6ULL Sense Terminal · M2 执行汇报</div>
+      <h1>M2 MJPEG 浏览器推流：当前任务、代码框架与进度</h1>
+      <p class="subtitle">把 M1 已验证的 USB UVC MJPG 摄像头帧，经过 V4L2 mmap、最新帧共享和 HTTP multipart 输出，变成浏览器可持续观看的实时画面。</p>
+      <p class="meta">生成日期：2026-07-12 · 分支：<code>codex/m2-mjpeg-stream</code> · 数据来源：本地 Git、主机构建输出、板端 SSH/HTTP 实测</p>
+    </div>
+  </header>
+
+  <div class="wrap executive" aria-label="执行摘要">
+    <article>
+      <span class="eyebrow">当前任务</span>
+      <strong>M2 核心链路验证</strong>
+      <p>代码已上板运行，正在完成 stream 协议与浏览器验收。</p>
+    </article>
+    <article>
+      <span class="eyebrow">已证明</span>
+      <strong>ARM 板端 30 fps 采集</strong>
+      <p><code>/status</code> 最新快照：51803 帧、30.0 fps、非 degraded。</p>
+    </article>
+    <article>
+      <span class="eyebrow">下一关键动作</span>
+      <strong>浏览器肉眼确认</strong>
+      <p>打开 <code>http://192.168.7.2:8080/</code>，确认画面持续刷新。</p>
+    </article>
+    <article>
+      <span class="eyebrow">主要风险</span>
+      <strong>尚未形成可合并提交</strong>
+      <p>stream 字节检查、CPU/稳定性、M2 文档和 Git 提交仍待完成。</p>
+    </article>
+  </div>
+
+  <nav aria-label="报告导航">
+    <div class="wrap">
+      <a href="#task">当前任务</a>
+      <a href="#goal">M2 目标</a>
+      <a href="#architecture">运行框架</a>
+      <a href="#files">文件结构</a>
+      <a href="#progress">进度</a>
+      <a href="#evidence">实测证据</a>
+      <a href="#risks">风险</a>
+      <a href="#next">下一步</a>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <section id="task">
+      <h2>1. 我当前正在执行什么</h2>
+      <div class="callout success">
+        <strong>当前结论：</strong>M2 第一版代码已经写入、主机编译通过、ARM 交叉编译通过，并已部署到 i.MX6ULL 板端。daemon 已自动选中 <code>/dev/video1</code>，持续采集 MJPG 640×480，HTTP <code>/status</code> 可从 WSL 访问。
+      </div>
+      <p>中断前的具体操作是：从 <code>/stream</code> 截取 2 秒 multipart MJPEG 样本。curl 已收到 <strong>465415 字节</strong>；由于主动设置 2 秒超时，curl 返回 28 属于预期停止方式。下一步原本是读取样本前 128 字节，确认 <code>--frame</code>、<code>Content-Type: image/jpeg</code> 与 JPEG <code>ff d8</code>，但该只读检查被用户中断。</p>
+      <div class="callout warning">
+        <strong>当前边界：</strong>代码处于未提交工作区，仍是 M2 初版；不能把“板端状态接口成功”直接等同于“M2 全部完成”。浏览器画面、multipart 完整性、CPU/稳定性和文档证据还需要闭环。
+      </div>
+    </section>
+
+    <section id="goal">
+      <h2>2. M2 要实现的操作与目标</h2>
+      <div class="progress-row">
+        <strong>验收检查点</strong>
+        <progress value="6" max="10" aria-label="M2 已完成 6 个检查点，共 10 个"></progress>
+        <span>6 完成 / 1 进行中 / 3 待完成</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>目标</th><th>实现动作</th><th>成功标准</th><th>当前状态</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>动态找到 UVC 图像节点</td><td>扫描 <code>/dev/video0..63</code>，只接受 <code>uvcvideo + Video Capture + Streaming</code></td><td>不写死重启后会变化的编号，不误用 PXP/metadata</td><td><span class="status done">已完成</span></td></tr>
+            <tr><td>连续采集 MJPG</td><td>设置 640×480@30，申请 V4L2 mmap buffer，执行 QBUF/STREAMON/DQBUF</td><td>frame_count 持续增长，JPEG 以 <code>ff d8</code> 开头</td><td><span class="status done">已完成</span></td></tr>
+            <tr><td>最新帧共享</td><td>capture thread 只覆盖最新 JPEG；客户端复制当前帧，不排队历史帧</td><td>慢客户端不导致内存无限增长</td><td><span class="status done">已完成</span></td></tr>
+            <tr><td>HTTP 页面</td><td><code>GET /</code> 返回内嵌 <code>&lt;img src="/stream"&gt;</code> 的页面</td><td>浏览器能打开页面</td><td><span class="status done">接口完成</span></td></tr>
+            <tr><td>状态接口</td><td><code>GET /status</code> 输出设备、尺寸、fps、帧数、客户端和错误</td><td>正常时 ok=true；无摄像头时 degraded=true 且服务不退出</td><td><span class="status done">已验证</span></td></tr>
+            <tr><td>MJPEG 输出</td><td><code>GET /stream</code> 输出 multipart/x-mixed-replace</td><td>边界、Content-Length、JPEG 帧均正确</td><td><span class="status active">验证中</span></td></tr>
+            <tr><td>浏览器实时画面</td><td>Windows 浏览器访问板端 8080</td><td>画面持续刷新且可观察摄像头变化</td><td><span class="status pending">待验证</span></td></tr>
+            <tr><td>稳定性与性能</td><td>单客户端持续运行，记录 FPS、CPU、内存与异常日志</td><td>目标 30 分钟；无崩溃、无持续错误</td><td><span class="status pending">待记录</span></td></tr>
+            <tr><td>证据与阶段文档</td><td>更新 M2 日志、阶段总结和必要 bug 报告</td><td>真实命令和结果可复盘</td><td><span class="status pending">待完成</span></td></tr>
+            <tr><td>Git 集成</td><td>检查、提交、push、PR 到 develop</td><td>M2 PR 只包含 M2 变更</td><td><span class="status pending">未开始</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="architecture">
+      <h2>3. 代码设计框架与运行数据流</h2>
+      <div class="flow" aria-label="M2 数据流">
+        <div class="flow-node"><strong>USB UVC 摄像头</strong><small>设备原生输出 MJPG<br>本次图像节点 /dev/video1</small></div>
+        <div class="flow-node"><strong>capture_v4l2</strong><small>QUERYCAP · S_FMT<br>MMAP · DQBUF/QBUF</small></div>
+        <div class="flow-node"><strong>AppState 最新帧</strong><small>mutex + condition<br>只保存最新 JPEG</small></div>
+        <div class="flow-node"><strong>http_server</strong><small>/ · /status · /stream<br>每连接一个 worker</small></div>
+        <div class="flow-node"><strong>浏览器</strong><small>multipart/x-mixed-replace<br>&lt;img src="/stream"&gt;</small></div>
+      </div>
+
+      <h3>线程模型</h3>
+      <div class="lane">
+        <div class="lane-label">主线程</div>
+        <div class="lane-body">解析 <code>-c</code>、加载 JSON、安装信号处理、启动 capture thread，然后在 <code>http_server_run</code> 中监听 8080。收到 SIGINT/SIGTERM 后通知所有线程退出。</div>
+      </div>
+      <div class="lane">
+        <div class="lane-label">Capture 线程</div>
+        <div class="lane-body">动态扫描 UVC Video Capture 节点，初始化 V4L2 mmap，持续取出 MJPG 帧并覆盖 AppState 中的最新帧；失败时设置 degraded 并每 2 秒重试。</div>
+      </div>
+      <div class="lane">
+        <div class="lane-label">HTTP worker</div>
+        <div class="lane-body">每个 TCP 请求使用一个短生命周期线程。普通页面和状态请求立即返回；stream worker 等待 frame_sequence 变化并发送最新 JPEG。</div>
+      </div>
+
+      <h3>关键设计决策</h3>
+      <ul>
+        <li><strong>MJPG pass-through：</strong>摄像头已经输出 JPEG，本阶段不引入 libjpeg，也不做 YUYV 编码，降低 Cortex-A7 CPU 压力。</li>
+        <li><strong>动态节点识别：</strong>不依赖 <code>/dev/video1</code> 的偶然编号，实际选择条件是驱动名和 Device Caps。</li>
+        <li><strong>最新帧模型：</strong>不建立历史帧队列。HTTP 客户端慢时跳过旧帧，而不是推高内存占用和延迟。</li>
+        <li><strong>degraded 不退出：</strong>摄像头缺失时 HTTP 仍可返回可解释状态，为后续 M4 systemd/故障注入保留正确语义。</li>
+        <li><strong>范围控制：</strong>M2 不做 motion、录像、认证、OV5640、systemd 和复杂网页。</li>
+      </ul>
+    </section>
+
+    <section id="files">
+      <h2>4. 按文件展示当前代码</h2>
+      <div class="tree" aria-label="M2 文件树">
+        <ul>
+          <li><code>app/daemon/</code>
+            <ul>
+              <li><a href="../../app/daemon/main.c"><code>main.c</code></a> — 生命周期、参数、信号、线程编排</li>
+              <li><a href="../../app/daemon/sense.h"><code>sense.h</code></a> — 配置、状态、模块接口契约</li>
+              <li><a href="../../app/daemon/config.c"><code>config.c</code></a> — 平面 JSON 解析与范围校验</li>
+              <li><a href="../../app/daemon/state.c"><code>state.c</code></a> — 最新帧、状态快照、条件变量、客户端计数</li>
+              <li><a href="../../app/daemon/capture_v4l2.c"><code>capture_v4l2.c</code></a> — 动态 UVC 发现与 V4L2 mmap 采集</li>
+              <li><a href="../../app/daemon/http_server.c"><code>http_server.c</code></a> — TCP、路由、JSON、multipart MJPEG</li>
+              <li><a href="../../app/daemon/Makefile"><code>Makefile</code></a> — 五模块主机/ARM 构建和 pthread 链接</li>
+            </ul>
+          </li>
+          <li><a href="../../config/config.json"><code>config/config.json</code></a> — auto、640×480、30 fps、8080</li>
+          <li><a href="../verification/evidence/M2_mjpeg_stream.md"><code>docs/verification/evidence/M2_mjpeg_stream.md</code></a> — M2 证据文档，当前尚未回填</li>
+        </ul>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>文件</th><th>规模</th><th>输入</th><th>输出/职责</th><th>失败行为</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><code>main.c</code></td><td>109 行</td><td>命令行、config 路径、SIGINT/SIGTERM</td><td>创建 AppState 与 capture thread，运行 HTTP server，协调退出</td><td>坏配置返回 2；HTTP 初始化失败返回 1</td></tr>
+            <tr><td><code>sense.h</code></td><td>88 行</td><td>模块共享类型</td><td>SenseConfig、StatusSnapshot、AppState、函数声明</td><td>不含运行逻辑</td></tr>
+            <tr><td><code>config.c</code></td><td>336 行</td><td>平面 JSON 文件</td><td>解析 device/width/height/fps/http_port 等，并做范围校验</td><td>明确错误，不带错误配置继续启动</td></tr>
+            <tr><td><code>state.c</code></td><td>238 行</td><td>JPEG 帧、错误、客户端变化</td><td>加锁保存最新帧；计算 fps/frame_count；生成线程安全快照</td><td>内存不足时返回错误；stop 时广播唤醒</td></tr>
+            <tr><td><code>capture_v4l2.c</code></td><td>320 行</td><td>device selector 与格式配置</td><td>扫描节点、QUERYCAP、MJPG S_FMT、mmap、stream loop</td><td>标记 degraded、记录 last_error、延时重试</td></tr>
+            <tr><td><code>http_server.c</code></td><td>303 行</td><td>TCP GET 请求、AppState</td><td>返回 HTML、JSON、multipart MJPEG；管理 stream client_count</td><td>断开客户端、忽略 SIGPIPE、退出前等待 worker</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <details>
+        <summary>HTTP 接口契约</summary>
+        <div>
+          <pre>GET /
+200 text/html
+页面核心：&lt;img src="/stream"&gt;
+
+GET /status
+200 application/json
+字段：ok, degraded, device, width, height, fps,
+      frame_count, client_count, motion_state,
+      event_count, last_error
+
+GET /stream
+200 multipart/x-mixed-replace; boundary=frame
+
+--frame
+Content-Type: image/jpeg
+Content-Length: N
+
+[JPEG bytes]</pre>
+        </div>
+      </details>
+
+      <details>
+        <summary>当前配置</summary>
+        <div>
+          <pre>{
+  "device": "auto",
+  "width": 640,
+  "height": 480,
+  "fps_limit": 30,
+  "http_port": 8080
+}</pre>
+          <p><code>jpeg_quality</code> 在 MJPG pass-through 路径不参与编码；motion 字段保留但 M2 不使用。</p>
+        </div>
+      </details>
+    </section>
+
+    <section id="progress">
+      <h2>5. 当前进度：已完成、进行中、未完成</h2>
+      <div class="checklist">
+        <div class="check"><span class="status done">已完成</span><div><strong>M2 分支与范围</strong><br><code>codex/m2-mjpeg-stream</code>，基于已合并 M1 的 develop。</div></div>
+        <div class="check"><span class="status done">已完成</span><div><strong>核心代码初版</strong><br>配置、状态、V4L2 capture、HTTP server、main 已写入。</div></div>
+        <div class="check"><span class="status done">已完成</span><div><strong>主机编译</strong><br>GCC C11 + pthread，五个源文件无警告。</div></div>
+        <div class="check"><span class="status done">已完成</span><div><strong>主机 degraded 验证</strong><br>无摄像头仍能返回首页和明确的 degraded JSON。</div></div>
+        <div class="check"><span class="status done">已完成</span><div><strong>ARM 交叉编译</strong><br>Linaro GCC 7.5，ARM EABI5 hard-float，依赖 libc/libpthread。</div></div>
+        <div class="check"><span class="status done">已完成</span><div><strong>板端部署与采集</strong><br>RNDIS 0% 丢包，动态选中 /dev/video1，当前 30.0 fps。</div></div>
+        <div class="check"><span class="status active">进行中</span><div><strong>MJPEG 协议验证</strong><br>2 秒收到 465415 字节；headers、boundary、JPEG SOI/EOI 尚待完成检查。</div></div>
+        <div class="check"><span class="status pending">未完成</span><div><strong>浏览器肉眼验证</strong><br>尚未由用户确认页面中的摄像头画面持续刷新。</div></div>
+        <div class="check"><span class="status pending">未完成</span><div><strong>性能/稳定性证据</strong><br>已有 5 万帧运行事实，但 CPU、内存、正式 30 分钟记录尚未归档。</div></div>
+        <div class="check"><span class="status pending">未完成</span><div><strong>文档、清理与 Git</strong><br>.d 文件忽略规则、M2 文档、阶段总结、commit、push、PR 均未完成。</div></div>
+      </div>
+    </section>
+
+    <section id="evidence">
+      <h2>6. 已取得的真实证据</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>检查</th><th>命令/来源</th><th>关键输出</th><th>结论</th></tr></thead>
+          <tbody>
+            <tr><td>主机构建</td><td><code>make -C app/daemon</code></td><td>main/config/state/capture/http 全部编译链接；无 warning</td><td><span class="status done">通过</span></td></tr>
+            <tr><td>主机降级状态</td><td><code>curl 127.0.0.1:8080/status</code></td><td><code>ok:false, degraded:true, no UVC Video Capture node...</code></td><td><span class="status done">通过</span></td></tr>
+            <tr><td>ARM 产物</td><td><code>file imx6ull-sense</code></td><td>ELF 32-bit ARM EABI5 hard-float，GNU/Linux 3.2.0</td><td><span class="status done">通过</span></td></tr>
+            <tr><td>RNDIS</td><td><code>ping -c 4 192.168.7.2</code></td><td>4/4，0% packet loss，平均 1.234 ms</td><td><span class="status done">通过</span></td></tr>
+            <tr><td>板端日志</td><td><code>/tmp/imx6ull-sense-m2.log</code></td><td><code>capture active: /dev/video1 MJPG 640x480</code></td><td><span class="status done">通过</span></td></tr>
+            <tr><td>板端状态</td><td><code>curl 192.168.7.2:8080/status</code></td><td><code>ok:true, fps:30.0, frame_count:51803, last_error:null</code></td><td><span class="status done">通过</span></td></tr>
+            <tr><td>流传输</td><td>curl 2 秒限时采样</td><td>收到 465415 字节；curl 28 是主动超时终止</td><td><span class="status active">内容待解析</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="meta">注意：frame_count 是 2026-07-12 报告生成时的动态快照，后续会继续增加，不能作为固定测试常量。</p>
+    </section>
+
+    <section id="risks">
+      <h2>7. 当前风险、缺口与不确定项</h2>
+      <div class="callout risk">
+        <strong>尚不能宣称 M2 完成。</strong>最关键的用户可见验收“浏览器看到持续画面”还没有被确认，multipart 样本也未完成字节级检查。
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>风险/缺口</th><th>影响</th><th>当前缓解</th><th>状态</th></tr></thead>
+          <tbody>
+            <tr><td>浏览器未确认</td><td>HTTP 状态成功不代表浏览器解码和刷新成功</td><td>直接访问板端首页并观察动态画面</td><td><span class="status active">最高优先级</span></td></tr>
+            <tr><td>multipart 字节检查中断</td><td>尚未保存 boundary 与 JPEG SOI/EOI 的正式证据</td><td>复用已采样的 WSL /tmp 文件，不必重新采集</td><td><span class="status active">待检查</span></td></tr>
+            <tr><td>仅支持原生 MJPG</td><td>不支持只输出 YUYV 的摄像头</td><td>当前摄像头已验证 MJPG；YUYV 编码不进入 M2 第一版</td><td><span class="status pending">已知限制</span></td></tr>
+            <tr><td>PXP 历史 Oops</td><td>错误查询 /dev/video0 可能触发 BSP bug</td><td>代码只用 QUERYCAP 识别能力，不执行 --all；真正采集只选 uvcvideo</td><td><span class="status done">已绕过</span></td></tr>
+            <tr><td>无认证</td><td>同一网络内任何客户端均可访问</td><td>MVP 仅用于受控 LAN 演示，文档明确限制</td><td><span class="status pending">范围外</span></td></tr>
+            <tr><td>构建 .d 文件未忽略</td><td>Git 状态出现未跟踪依赖文件</td><td>提交前更新 .gitignore 或 clean 后确认</td><td><span class="status active">待清理</span></td></tr>
+            <tr><td>源码尚未 review/commit</td><td>当前实现不是稳定集成点</td><td>完成运行验收后做代码审查、diff check、精确暂存</td><td><span class="status active">待完成</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="next">
+      <h2>8. 下一步具体操作</h2>
+      <ol class="next-steps">
+        <li><div><strong>用户立即验证浏览器</strong><p>Windows 浏览器打开 <code>http://192.168.7.2:8080/</code>，移动摄像头前物体，确认画面连续变化。daemon 当前在线。</p></div></li>
+        <li><div><strong>完成 stream 字节检查</strong><p>读取现有 <code>/tmp/m2-stream.headers</code> 与 <code>/tmp/m2-stream.bin</code>，确认 HTTP Content-Type、<code>--frame</code>、JPEG <code>ff d8</code> 和帧边界。</p></div></li>
+        <li><div><strong>记录性能与稳定性</strong><p>采集板端 <code>top</code>/<code>ps</code> CPU、RSS、frame_count 增长与运行日志；形成正式的单客户端稳定性记录。</p></div></li>
+        <li><div><strong>收敛代码</strong><p>处理 <code>.d</code> 忽略项，执行代码审查、主机重编译、ARM 重编译和退出清理验证。只修 M2 直接相关问题。</p></div></li>
+        <li><div><strong>文档与 Git</strong><p>回填 <code>docs/verification/evidence/M2_mjpeg_stream.md</code>，创建 <code>M2_mjpeg_browser_stream.md</code> 阶段总结；如出现 meaningful bug，新增独立 bug 报告。然后精确暂存、提交、push 并向 develop 发 PR。</p></div></li>
+      </ol>
+
+      <div class="callout success">
+        <strong>进入 M3 的门槛：</strong>浏览器实时画面、/status、stream 协议、稳定性与文档全部有真实证据，M2 PR 已合并到 develop。在此之前不实现 motion detection。
+      </div>
+    </section>
+
+    <section id="sources">
+      <h2>9. 报告来源与可信度</h2>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>来源</th><th>用于支持</th><th>可信度说明</th></tr></thead>
+          <tbody>
+            <tr><td>Git 工作区与源码文件</td><td>分支、文件、代码规模、未提交状态</td><td>直接观察</td></tr>
+            <tr><td>主机 make 输出</td><td>无警告编译与链接</td><td>直接执行</td></tr>
+            <tr><td>Linaro ARM 构建与 readelf/file</td><td>ARM EABI5 hard-float 和动态依赖</td><td>直接执行</td></tr>
+            <tr><td>板端 SSH 日志、ss、curl</td><td>进程、8080、UVC 节点、FPS、frame_count</td><td>板端实时观察</td></tr>
+            <tr><td>浏览器画面</td><td>用户可见实时预览</td><td><strong>尚未验证</strong></td></tr>
+            <tr><td>正式 30 分钟 CPU/稳定性记录</td><td>M2 最终验收</td><td><strong>尚未归档</strong></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">本报告是离线单文件 HTML，不依赖外部字体、脚本或网络资源。报告只记录已观察事实；未完成项没有被标记为通过。</div>
+  </footer>
+</body>
+</html>
