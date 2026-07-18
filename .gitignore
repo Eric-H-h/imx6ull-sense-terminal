@@ -1,4 +1,5 @@
 *.o
+*.d
 *.a
 *.so
 *.elf
@@ -11,3 +12,6 @@ app/daemon/imx6ull-sense
 .cache/
 build/
 cmake-build-*/
+
+# Local standalone report site (nested Git repository)
+tools/report-sites/m2-code-learning-manual/
