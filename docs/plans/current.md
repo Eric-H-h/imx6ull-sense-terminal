@@ -2,10 +2,10 @@
 
 ## 状态
 
-- 当前里程碑：M2，MJPEG 浏览器推流，验收完成并等待合并。
-- 当前分支：`codex/m2-mjpeg-stream`。
-- 已完成：M0、M1。
-- 当前阶段状态：Completed；M2 PR 合入 `develop` 前不进入 M3。
+- 当前里程碑：M3，Motion Event 与 JSONL，验收完成并等待提交和合并。
+- 当前分支：`codex/m3-motion-event`。
+- 已完成：M0、M1、M2；M3 功能与板端验收已完成。
+- 当前阶段状态：Completed；M3 PR 合入 `develop` 前不进入 M4 实现。
 - MVP 路线：USB UVC first；OV5640 为可选增强项。
 - 目标发布时间：2026 年 7 月底前完成 MVP。
 
@@ -52,11 +52,11 @@ MVP 不包含：
 | M0 | 主机、交叉编译、板端部署闭环 | Completed | [M0 summary](../stage_summaries/M0_environment_and_board_baseline.md) |
 | M1 | UVC 枚举、格式和真实首帧 | Completed | [M1 summary](../stage_summaries/M1_usb_uvc_camera_capture.md) |
 | M2 | 浏览器 MJPEG 和状态接口 | Completed | [M2 summary](../stage_summaries/M2_mjpeg_browser_stream.md) |
-| M3 | motion event 与 JSONL | Planned | [M3 evidence](../verification/evidence/M3_motion_event.md) |
+| M3 | motion event 与 JSONL | Completed | [M3 summary](../stage_summaries/M3_motion_event_logging.md) |
 | M4 | systemd 与故障注入 | Planned | [M4 evidence](../verification/evidence/M4_fault_injection.md) |
 | M5 | 测试报告、演示和发布 | Planned | [test report](../verification/test-report.md) |
 
-## M2：当前执行内容
+## M2：已完成内容
 
 ### 目标
 
@@ -97,17 +97,20 @@ M2 的输入实现可以保持 UVC/MJPEG 专用，不要求为 OV5640 提前重�
 - 30 分钟运行无不可解释崩溃、失控内存增长或内核错误。
 - M2 evidence 和阶段总结完整。
 
-## M3：Motion Event
+## M3：Motion Event（Completed）
 
-M3 开始前先根据 M2 的 MJPEG 直通架构确定检测输入方案。候选方案包括抽样解码 MJPEG或切换/并行获取 YUYV，必须以 i.MX6ULL 实测为依据。
+M3 保留 M2 UVC MJPEG pass-through，通过 latest JPEG 以 3 FPS 抽样、libjpeg `1/4` scaling 解码到 160x120 grayscale，再执行逐像素帧差、5% threshold、1500 ms cooldown 和 JSONL 追加。
 
-交付：
+已完成：
 
-- 可解释的 motion score。
-- 可配置 threshold 和 cooldown。
-- JSONL 事件追加写入。
-- `/status` 中的 motion 和 event 字段改为真实状态。
-- 静止、挥手、重复触发和日志格式证据。
+- 可解释的 changed ratio motion score。
+- 可配置 sample FPS、scale、两层 threshold 和 cooldown。
+- JSONL 事件追加写入和逐行解析。
+- `/status` 输出真实 motion state、score、采样 FPS 和 event count。
+- 静止 0 误报、10/10 挥手、持续运动 cooldown、摄像头恢复和 30 分钟并行稳定性证据。
+- 主机 `make verify`、ARM 固定构建脚本和 GCC analyzer。
+
+详细证据见 [M3 evidence](../verification/evidence/M3_motion_event.md)。M3 PR 合入 `develop` 前不开始 M4 源码或 systemd 修改。
 
 ## M4：systemd 与故障注入
 

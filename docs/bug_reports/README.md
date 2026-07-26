@@ -62,6 +62,9 @@ M4-SVC-SYSTEMD-001_restart_policy_not_applied.md
 | M0-NET-WIFI-001 | M0 | 网络 / 部署 | 是，直到 USB RNDIS 修复 | Wi-Fi 路径不稳定；USB RNDIS 初期受数据线和 Windows 驱动绑定影响 | M0 已解决 | [M0-NET-WIFI-001](M0-NET-WIFI-001_usb_rndis_board_link.md) |
 | M1-DRV-PXP-001 | M1 | 内核 / V4L2 / PXP | 否，UVC 路径可绕过 | 查询 PXP Video Output 节点时触发内核 Oops | Mitigated，根因待确认 | [M1-DRV-PXP-001](M1-DRV-PXP-001_pxp_query_kernel_oops.md) |
 | M2-NET-PROXY-001 | M2 | WSL 网络 / HTTP 验证 | 是，直到绕过代理 | SOCKS 代理接管 RNDIS 私网 HTTP 请求，导致 curl 超时 | Resolved | [M2-NET-PROXY-001](M2-NET-PROXY-001_wsl_proxy_bypasses_rndis.md) |
+| M3-ENV-PROXY-001 | M3 | WSL 环境 / APT / Proxy | 是，直到显式传递代理 | sudo 清理用户代理环境后，APT 直连 Ubuntu archive 超时 | Resolved | [M3-ENV-PROXY-001](M3-ENV-PROXY-001_sudo_apt_drops_proxy.md) |
+| M3-OPS-SSH-001 | M3 | 测试自动化 / SSH / stdin | 是，直到隔离 SSH stdin | SSH 消费管道中的剩余 Bash 脚本，导致后续部署、证据和清理命令未执行 | Resolved | [M3-OPS-SSH-001](M3-OPS-SSH-001_ssh_consumes_piped_script_stdin.md) |
+| M3-OPS-WSL-002 | M3 | 测试自动化 / WSL / PowerShell | 是，首次30分钟 runner 未存活 | CRLF 和短生命周期父 shell 导致进度命令异常、后台 runner 退出 | Resolved | [M3-OPS-WSL-002](M3-OPS-WSL-002_powershell_wsl_runner_lifecycle.md) |
 
 ## 当前需关注风险
 
@@ -72,3 +75,6 @@ M4-SVC-SYSTEMD-001_restart_policy_not_applied.md
 | UVC 摄像头可能暴露意外格式或设备编号 | M1 | 先做枚举和一帧采集，再写大段 V4L2 代码 |
 | PXP V4L2 查询路径会触发内核 Oops | M1 及后续 | 不把 PXP 输出节点当作摄像头；需要 PXP 时另行定位 BSP 驱动 |
 | WSL 代理可能接管板端私网请求 | M2-M5 | curl 使用 `--noproxy 192.168.7.2`，并配置 `NO_PROXY` |
+| sudo 后 APT 可能丢失用户代理 | M3-M5 | 对需要联网的单次 APT 命令显式设置 `Acquire::Proxy` |
+| 管道执行的自动化脚本可能被 SSH 消费 stdin | M3-M5 | 不需要远端 stdin 的命令统一使用 `ssh -n` 或 `</dev/null` |
+| Windows/WSL 长期 runner 可能受 CRLF 和父 shell 生命周期影响 | M3-M5 | UTF-8 LF stdin；由独立前台 WSL 进程持有完整测试生命周期 |

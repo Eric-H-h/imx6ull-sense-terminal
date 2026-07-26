@@ -19,12 +19,13 @@ USB UVC 摄像头
 
 - M0 环境、交叉编译、部署和板端运行：已完成。
 - M1 USB UVC 枚举、格式确认和 MJPG 首帧：已完成。
-- M2 V4L2 MJPEG 采集与 HTTP stream：验收完成，等待 PR 合入 `develop`。
-- M3 motion event、M4 systemd、M5 发布包装：未开始。
+- M2 V4L2 MJPEG 采集与 HTTP stream：已完成并合入 `develop`。
+- M3 motion event、JSONL 和状态接口：验收完成，等待提交和 PR。
+- M4 systemd、M5 发布包装：未开始。
 
-当前分支：`codex/m2-mjpeg-stream`。
+当前分支：`codex/m3-motion-event`。
 
-M2 已完成代码审查、主机和 ARM 构建、板端接口、浏览器画面、重连及超过 30 分钟的稳定性验证。M2 PR 合入 `develop` 后再创建 M3 分支。
+M3 已完成主机和 ARM 构建、运动检测校准、摄像头恢复、JSONL 解析、浏览器并行推流及 30 分钟稳定性验证。详细结论见 [M3 evidence](docs/verification/evidence/M3_motion_event.md)。
 
 ## 仓库入口
 

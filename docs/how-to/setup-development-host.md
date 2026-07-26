@@ -25,19 +25,23 @@ git --version
 
 ```sh
 cd /home/eric/projects/imx6ull-sense-terminal
-make -C app/daemon clean all
+make -C app/daemon verify
 ```
+
+`verify` 会依次执行 clean、主机 daemon 构建和全部单元测试。修改 Makefile 后先用 `make -C app/daemon -n verify` 检查命令展开。
 
 ## 交叉编译
 
-先确认项目配置的 ARM hard-float 工具链可用，再执行：
+M3 起使用固定脚本，避免不同 shell 的 PATH 和手工参数不一致：
 
 ```sh
-make -C app/daemon clean all CROSS_COMPILE=arm-linux-gnueabihf-
-file app/daemon/imx6ull-sense
+./scripts/build-arm.sh
+file app/daemon/build/arm/imx6ull-sense
 ```
 
-预期 `file` 输出包含 32-bit ARM、EABI5 和 hard-float 解释器信息。实际工具链版本和首次构建证据见 [M0 bring-up](../verification/evidence/M0_bringup.md)。
+默认使用 `~/.local/toolchains/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin` 和 `~/.local/sysroots/imx6ull-libjpeg-deb10-1.5.2-armhf`。可通过 `ARM_TOOLCHAIN_BIN`、`ARM_JPEG_ROOT`、`ARM_CC`、`ARM_READELF` 和 `ARM_OUTPUT_DIR` 覆盖。
+
+脚本会验证输入、生成 ARM EABI5 产物、检查 `NEEDED` 动态库，并清理可能与主机构建混用的中间对象。实际工具链版本见 [M0 bring-up](../verification/evidence/M0_bringup.md)，libjpeg 与 M3 产物证据见 [M3 evidence](../verification/evidence/M3_motion_event.md)。
 
 ## 常见误区
 
