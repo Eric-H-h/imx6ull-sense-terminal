@@ -4,6 +4,8 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -124,10 +126,50 @@ static int parse_integer(JsonCursor *cursor, long *value)
     return 0;
 }
 
+static int parse_number(JsonCursor *cursor, double *value)
+{
+    char *number_end;
+
+    skip_space(cursor);
+    if (cursor->current >= cursor->end) {
+        return -1;
+    }
+
+    errno = 0;
+    *value = strtod(cursor->current, &number_end);
+    if ((errno != 0) || (number_end == cursor->current) ||
+        (number_end > cursor->end)) {
+        return -1;
+    }
+    cursor->current = number_end;
+    return 0;
+}
+
+static int parse_boolean(JsonCursor *cursor, int *value)
+{
+    size_t remaining;
+
+    skip_space(cursor);
+    remaining = (size_t)(cursor->end - cursor->current);
+    if ((remaining >= 4U) &&
+        (strncmp(cursor->current, "true", 4U) == 0)) {
+        cursor->current += 4U;
+        *value = 1;
+        return 0;
+    }
+    if ((remaining >= 5U) &&
+        (strncmp(cursor->current, "false", 5U) == 0)) {
+        cursor->current += 5U;
+        *value = 0;
+        return 0;
+    }
+    return -1;
+}
+
 static int skip_value(JsonCursor *cursor)
 {
     char scratch[512];
-    long number;
+    double number;
     static const char *const literals[] = {"true", "false", "null"};
 
     skip_space(cursor);
@@ -140,7 +182,7 @@ static int skip_value(JsonCursor *cursor)
     }
 
     if ((*cursor->current == '-') || isdigit((unsigned char)*cursor->current)) {
-        return parse_integer(cursor, &number);
+        return parse_number(cursor, &number);
     }
 
     for (size_t i = 0; i < sizeof(literals) / sizeof(literals[0]); ++i) {
@@ -167,14 +209,28 @@ static int set_number(SenseConfig *config, const char *key, long value)
         config->jpeg_quality = (unsigned int)value;
     } else if (strcmp(key, "http_port") == 0) {
         config->http_port = (int)value;
-    } else if (strcmp(key, "motion_threshold") == 0) {
-        config->motion_threshold = (unsigned int)value;
+    } else if (strcmp(key, "motion_sample_fps") == 0) {
+        config->motion_sample_fps = (unsigned int)value;
+    } else if (strcmp(key, "motion_jpeg_scale_denom") == 0) {
+        config->motion_jpeg_scale_denom = (unsigned int)value;
+    } else if (strcmp(key, "motion_pixel_delta_threshold") == 0) {
+        config->motion_pixel_delta_threshold = (unsigned int)value;
     } else if (strcmp(key, "motion_cooldown_ms") == 0) {
         config->motion_cooldown_ms = (unsigned int)value;
     } else {
         return 0;
     }
     return 1;
+}
+
+static int integer_fits_field(const char *key, long value)
+{
+    if (strcmp(key, "http_port") == 0) {
+        return (value >= INT_MIN) && (value <= INT_MAX);
+    }
+
+    return (value >= 0L) &&
+           ((unsigned long)value <= (unsigned long)UINT_MAX);
 }
 
 static int parse_config_json(const char *text, size_t length,
@@ -214,15 +270,37 @@ static int parse_config_json(const char *text, size_t length,
                     set_error(error, error_size, "event_log must be a string");
                     return -1;
                 }
+            } else if (strcmp(key, "motion_enabled") == 0) {
+                if (parse_boolean(&cursor, &config->motion_enabled) < 0) {
+                    set_error(error, error_size,
+                              "motion_enabled must be a boolean");
+                    return -1;
+                }
+            } else if (strcmp(key,
+                              "motion_changed_ratio_threshold") == 0) {
+                if (parse_number(
+                        &cursor,
+                        &config->motion_changed_ratio_threshold) < 0) {
+                    set_error(error, error_size,
+                              "motion_changed_ratio_threshold must be a number");
+                    return -1;
+                }
             } else if ((strcmp(key, "width") == 0) ||
                        (strcmp(key, "height") == 0) ||
                        (strcmp(key, "fps_limit") == 0) ||
                        (strcmp(key, "jpeg_quality") == 0) ||
                        (strcmp(key, "http_port") == 0) ||
-                       (strcmp(key, "motion_threshold") == 0) ||
+                       (strcmp(key, "motion_sample_fps") == 0) ||
+                       (strcmp(key, "motion_jpeg_scale_denom") == 0) ||
+                       (strcmp(key, "motion_pixel_delta_threshold") == 0) ||
                        (strcmp(key, "motion_cooldown_ms") == 0)) {
                 if (parse_integer(&cursor, &number) < 0) {
                     set_error(error, error_size, "%s must be an integer", key);
+                    return -1;
+                }
+                if (!integer_fits_field(key, number)) {
+                    set_error(error, error_size,
+                              "%s integer is out of range", key);
                     return -1;
                 }
                 set_number(config, key, number);
@@ -269,6 +347,34 @@ static int validate_config(const SenseConfig *config,
         set_error(error, error_size, "jpeg_quality must be between 1 and 100");
     } else if ((config->http_port <= 0) || (config->http_port > 65535)) {
         set_error(error, error_size, "http_port must be between 1 and 65535");
+    } else if (config->event_log[0] == '\0') {
+        set_error(error, error_size, "event_log cannot be empty");
+    } else if ((config->motion_enabled != 0) &&
+               (config->motion_enabled != 1)) {
+        set_error(error, error_size, "motion_enabled must be a boolean");
+    } else if ((config->motion_sample_fps == 0U) ||
+               (config->motion_sample_fps > 30U)) {
+        set_error(error, error_size,
+                  "motion_sample_fps must be between 1 and 30");
+    } else if ((config->motion_jpeg_scale_denom != 1U) &&
+               (config->motion_jpeg_scale_denom != 2U) &&
+               (config->motion_jpeg_scale_denom != 4U) &&
+               (config->motion_jpeg_scale_denom != 8U)) {
+        set_error(error, error_size,
+                  "motion_jpeg_scale_denom must be 1, 2, 4, or 8");
+    } else if ((config->motion_pixel_delta_threshold == 0U) ||
+               (config->motion_pixel_delta_threshold > 255U)) {
+        set_error(error, error_size,
+                  "motion_pixel_delta_threshold must be between 1 and 255");
+    } else if (!isfinite(config->motion_changed_ratio_threshold) ||
+               (config->motion_changed_ratio_threshold <= 0.0) ||
+               (config->motion_changed_ratio_threshold > 1.0)) {
+        set_error(error, error_size,
+                  "motion_changed_ratio_threshold must be between 0 and 1");
+    } else if ((config->motion_cooldown_ms == 0U) ||
+               (config->motion_cooldown_ms > 3600000U)) {
+        set_error(error, error_size,
+                  "motion_cooldown_ms must be between 1 and 3600000");
     } else {
         return 0;
     }
@@ -292,8 +398,12 @@ int config_load(const char *path, SenseConfig *config,
     config->jpeg_quality = 75;
     config->http_port = 8080;
     snprintf(config->event_log, sizeof(config->event_log),
-             "/var/log/imx6ull-sense/events.jsonl");
-    config->motion_threshold = 12000;
+             "events.jsonl");
+    config->motion_enabled = 1;
+    config->motion_sample_fps = 3U;
+    config->motion_jpeg_scale_denom = 4U;
+    config->motion_pixel_delta_threshold = 25U;
+    config->motion_changed_ratio_threshold = 0.05;
     config->motion_cooldown_ms = 1500;
 
     file = fopen(path, "rb");

@@ -5,8 +5,12 @@
   "fps_limit": 30,
   "jpeg_quality": 75,
   "http_port": 8080,
-  "event_log": "/var/log/imx6ull-sense/events.jsonl",
-  "motion_threshold": 12000,
+  "event_log": "events.jsonl",
+  "motion_enabled": true,
+  "motion_sample_fps": 3,
+  "motion_jpeg_scale_denom": 4,
+  "motion_pixel_delta_threshold": 25,
+  "motion_changed_ratio_threshold": 0.05,
   "motion_cooldown_ms": 1500
 }
 

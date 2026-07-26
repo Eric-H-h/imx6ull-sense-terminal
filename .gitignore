@@ -5,6 +5,7 @@
 *.elf
 *.bin
 *.log
+events.jsonl
 *.yuv
 *.jpg
 secrets.local.md

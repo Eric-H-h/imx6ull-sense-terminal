@@ -90,6 +90,7 @@ void state_set_capture_active(AppState *state, const char *device,
                               unsigned int width, unsigned int height)
 {
     pthread_mutex_lock(&state->lock);
+    ++state->capture_generation;
     state->degraded = 0;
     state->width = width;
     state->height = height;
@@ -98,6 +99,7 @@ void state_set_capture_active(AppState *state, const char *device,
     state->capture_started_ns = monotonic_ns();
     state->last_error[0] = '\0';
     copy_text(state->device, sizeof(state->device), device);
+    pthread_cond_broadcast(&state->frame_ready);
     pthread_mutex_unlock(&state->lock);
 }
 
@@ -107,10 +109,14 @@ void state_set_degraded(AppState *state, const char *device,
     pthread_mutex_lock(&state->lock);
     state->degraded = 1;
     state->fps = 0.0;
+    state->motion_state = 0;
+    state->motion_score = 0.0;
+    state->motion_sample_fps = 0.0;
     if ((device != NULL) && (device[0] != '\0')) {
         copy_text(state->device, sizeof(state->device), device);
     }
     copy_text(state->last_error, sizeof(state->last_error), error);
+    pthread_cond_broadcast(&state->frame_ready);
     pthread_mutex_unlock(&state->lock);
 }
 
@@ -135,6 +141,7 @@ int state_publish_frame(AppState *state, const void *frame, size_t frame_size)
     memcpy(state->frame, frame, frame_size);
     state->frame_size = frame_size;
     ++state->frame_sequence;
+    state->frame_generation = state->capture_generation;
     ++state->frame_count;
 
     now = monotonic_ns();
@@ -197,6 +204,74 @@ int state_wait_frame(AppState *state, uint64_t *last_sequence,
     return 1;
 }
 
+JpegSnapshotStatus state_wait_jpeg_snapshot(AppState *state,
+                                            JpegSnapshot *snapshot)
+{
+    struct timespec deadline;
+    unsigned char *resized;
+    int wait_result;
+
+    if ((state == NULL) || (snapshot == NULL)) {
+        return JPEG_SNAPSHOT_ERROR;
+    }
+
+    clock_gettime(CLOCK_REALTIME, &deadline);
+    ++deadline.tv_sec;
+
+    pthread_mutex_lock(&state->lock);
+    while ((state->frame_sequence <= snapshot->sequence) &&
+           !state->degraded && !state->stop && !g_signal_stop) {
+        wait_result = pthread_cond_timedwait(&state->frame_ready, &state->lock,
+                                             &deadline);
+        if (wait_result == ETIMEDOUT) {
+            pthread_mutex_unlock(&state->lock);
+            return JPEG_SNAPSHOT_TIMEOUT;
+        }
+        if (wait_result != 0) {
+            pthread_mutex_unlock(&state->lock);
+            return JPEG_SNAPSHOT_ERROR;
+        }
+    }
+
+    if (state->stop || g_signal_stop) {
+        pthread_mutex_unlock(&state->lock);
+        return JPEG_SNAPSHOT_STOPPED;
+    }
+    if (state->degraded ||
+        (state->frame_generation != state->capture_generation)) {
+        snapshot->sequence = state->frame_sequence;
+        pthread_mutex_unlock(&state->lock);
+        return JPEG_SNAPSHOT_UNAVAILABLE;
+    }
+
+    if (state->frame_size > snapshot->capacity) {
+        resized = realloc(snapshot->data, state->frame_size);
+        if (resized == NULL) {
+            pthread_mutex_unlock(&state->lock);
+            return JPEG_SNAPSHOT_NO_MEMORY;
+        }
+        snapshot->data = resized;
+        snapshot->capacity = state->frame_size;
+    }
+
+    memcpy(snapshot->data, state->frame, state->frame_size);
+    snapshot->size = state->frame_size;
+    snapshot->sequence = state->frame_sequence;
+    snapshot->capture_generation = state->frame_generation;
+    pthread_mutex_unlock(&state->lock);
+    return JPEG_SNAPSHOT_READY;
+}
+
+void state_release_jpeg_snapshot(JpegSnapshot *snapshot)
+{
+    if (snapshot == NULL) {
+        return;
+    }
+
+    free(snapshot->data);
+    memset(snapshot, 0, sizeof(*snapshot));
+}
+
 void state_worker_delta(AppState *state, int delta)
 {
     pthread_mutex_lock(&state->lock);
@@ -222,6 +297,40 @@ void state_stream_client_delta(AppState *state, int delta)
     pthread_mutex_unlock(&state->lock);
 }
 
+void state_configure_motion(AppState *state, int enabled)
+{
+    pthread_mutex_lock(&state->lock);
+    state->motion_enabled = enabled != 0;
+    state->motion_state = 0;
+    state->motion_score = 0.0;
+    state->motion_sample_fps = 0.0;
+    state->event_count = 0U;
+    pthread_mutex_unlock(&state->lock);
+}
+
+void state_update_motion(AppState *state, int motion_detected,
+                         double score, double sample_fps,
+                         uint64_t event_count)
+{
+    pthread_mutex_lock(&state->lock);
+    if (state->motion_enabled) {
+        state->motion_state = motion_detected != 0;
+        state->motion_score = score;
+        state->motion_sample_fps = sample_fps;
+        state->event_count = event_count;
+    }
+    pthread_mutex_unlock(&state->lock);
+}
+
+void state_reset_motion_sample(AppState *state)
+{
+    pthread_mutex_lock(&state->lock);
+    state->motion_state = 0;
+    state->motion_score = 0.0;
+    state->motion_sample_fps = 0.0;
+    pthread_mutex_unlock(&state->lock);
+}
+
 void state_snapshot(AppState *state, StatusSnapshot *snapshot)
 {
     pthread_mutex_lock(&state->lock);
@@ -231,6 +340,11 @@ void state_snapshot(AppState *state, StatusSnapshot *snapshot)
     snapshot->fps = state->fps;
     snapshot->frame_count = state->frame_count;
     snapshot->client_count = state->client_count;
+    snapshot->motion_enabled = state->motion_enabled;
+    snapshot->motion_state = state->motion_state;
+    snapshot->motion_score = state->motion_score;
+    snapshot->motion_sample_fps = state->motion_sample_fps;
+    snapshot->event_count = state->event_count;
     copy_text(snapshot->device, sizeof(snapshot->device), state->device);
     copy_text(snapshot->last_error, sizeof(snapshot->last_error),
               state->last_error);
