@@ -2,7 +2,7 @@
 
 ## 当前边界
 
-项目运行在野火 EBF6ULL S1 Pro / i.MX6ULL 开发板上。M2 已完成验收，当前落地的主链路是：
+项目运行在野火 EBF6ULL S1 Pro / i.MX6ULL 开发板上。M3 已完成验收，当前落地的主链路是：
 
 ```text
 USB UVC 摄像头
@@ -10,8 +10,10 @@ USB UVC 摄像头
   -> /dev/videoX
   -> V4L2 MMAP 采集线程
   -> AppState 中的最新 JPEG 帧
-  -> HTTP multipart MJPEG
-  -> PC 浏览器
+       ├─ HTTP multipart MJPEG -> PC 浏览器
+       └─ 3 FPS 抽样 -> libjpeg 1/4 灰度解码
+                    -> 帧差 + threshold + cooldown
+                    -> JSONL event log + /status
 ```
 
 开发、交叉编译和部署由 WSL 主机完成，主机与开发板默认通过 USB RNDIS `192.168.7.2` 通信。
@@ -24,15 +26,18 @@ USB UVC 摄像头
 - 共享最新帧，不保存历史帧队列。
 - `GET /`、`GET /stream`、`GET /status`。
 - 摄像头不可用时进入 degraded 状态并重试。
+- JPEG 低频灰度解码和逐像素帧差。
+- threshold、cooldown、JSONL 事件追加写入。
+- `/status` 输出真实 motion 状态、score、采样 FPS 和事件计数。
 
-当前实现不包含 YUYV 软件 JPEG 编码、motion detection、JSONL 事件日志、正式 systemd 部署或 OV5640 CSI 适配。
+当前实现不包含 YUYV 软件 JPEG 编码、正式 systemd 部署或 OV5640 CSI 适配。
 
 ## 目标闭环
 
 ```text
-M2 浏览器 MJPEG
-  -> M3 motion event + JSONL
-  -> M4 systemd + 故障注入
+M2 浏览器 MJPEG（Completed）
+  -> M3 motion event + JSONL（Completed）
+  -> M4 systemd + 故障注入（Next）
   -> M5 演示、测试报告和发布
 ```
 

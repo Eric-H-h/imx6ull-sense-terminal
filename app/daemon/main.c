@@ -43,7 +43,9 @@ int main(int argc, char **argv)
     SenseConfig config;
     AppState state;
     CaptureContext capture_context;
+    MotionWorkerContext motion_context;
     pthread_t capture_thread;
+    pthread_t motion_thread;
     char error[256];
     int http_result;
 
@@ -80,13 +82,25 @@ int main(int argc, char **argv)
         fprintf(stderr, "state initialization failed\n");
         return 1;
     }
+    state_configure_motion(&state, config.motion_enabled);
 
     capture_context.config = &config;
     capture_context.state = &state;
+    motion_context.config = &config;
+    motion_context.state = &state;
 
     if (pthread_create(&capture_thread, NULL, capture_thread_main,
                        &capture_context) != 0) {
         fprintf(stderr, "capture thread creation failed\n");
+        state_destroy(&state);
+        return 1;
+    }
+
+    if (pthread_create(&motion_thread, NULL, motion_worker_thread_main,
+                       &motion_context) != 0) {
+        fprintf(stderr, "motion worker thread creation failed\n");
+        state_request_stop(&state);
+        pthread_join(capture_thread, NULL);
         state_destroy(&state);
         return 1;
     }
@@ -98,6 +112,7 @@ int main(int argc, char **argv)
     http_result = http_server_run(&state, config.http_port);
     state_request_stop(&state);
     pthread_join(capture_thread, NULL);
+    pthread_join(motion_thread, NULL);
     state_wait_for_clients(&state);
     state_destroy(&state);
 

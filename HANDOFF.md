@@ -13,45 +13,44 @@ Git 命令必须在 WSL 路径执行。
 
 ## 当前状态
 
-- 当前分支：`codex/m2-mjpeg-stream`。
-- M0：Completed。
-- M1：Completed，并已合入 `develop`。
-- M2：Completed，代码和板端验收通过，等待 PR 合入 `develop`。
-- M3-M5：未开始。
+- 当前分支：`codex/m3-motion-event`。
+- M0、M1、M2：Completed，并已合入 `develop`。
+- M3：功能、代码检查和板端验收 Completed，等待 commit 与 PR。
+- M4-M5：未开始。
 - 默认摄像头路线：USB UVC。
 - OV5640：MVP 后可选增强项。
 - 默认板端连接：`debian@192.168.7.2`，USB RNDIS。
 
-M2 功能代码已提交为 `b31be00`，阶段收尾文档待提交。不要删除来源不明的文件，不要执行 `git add .`。
+M3 工作区包含尚未提交的源码、测试、构建入口和文档；`.vscode/` 与 `tmp/` 是无关未跟踪内容。不要删除来源不明的文件，不要执行 `git add .`。
 
 ## 当前实现边界
 
-M2 已实现并通过验收：
+M3 已实现并通过验收：
 
-- 动态选择 `uvcvideo + Video Capture + Streaming` 节点。
-- V4L2 MJPEG MMAP 采集。
-- AppState 最新 JPEG 和运行状态。
-- `GET /`、`GET /stream`、`GET /status`。
-- 摄像头失败 degraded 和重新扫描。
+- 动态选择 UVC Capture 节点并以 MJPEG 640x480@30 推流。
+- latest JPEG 以 3 FPS 抽样，libjpeg 缩放解码到 grayscale。
+- 帧差 score、两层 threshold、cooldown 和 JSONL event log。
+- `/status` 输出真实 motion state、score、采样 FPS 和 event count。
+- camera missing/recovery 时清除 baseline，恢复第一帧不产生假事件。
+- 一个浏览器客户端与 motion 并行运行30分钟，stream 30 FPS、RSS delta 0。
 
 未实现或未完成：
 
-- M3 motion detection 和 JSONL event log。
 - M4 systemd 正式部署和故障注入。
+- M5 发布包装。
 - OV5640 CSI/DVP。
-
-`/status` 中的 motion 字段在 M3 前是占位值，不代表 motion 已实现。
 
 ## 下一步唯一主线
 
-收尾 M2，不提前进入 M3：
+收尾 M3，不提前进入 M4：
 
-1. 先将文档架构迁移 PR 合入 `develop`。
-2. 再将 M2 源码和阶段收尾文档 PR 合入 `develop`。
-3. 本地更新到最新 `develop`。
-4. 从 `develop` 创建 `codex/m3-motion-event`，开始 M3 输入方案评估。
+1. 审查 M3 源码、测试、文档和未跟踪文件清单。
+2. 按明确文件清单暂存并提交，不使用 `git add .`。
+3. 推送 `codex/m3-motion-event` 并创建面向 `develop` 的 PR。
+4. PR 合并后，本地 fast-forward 到最新 `develop`。
+5. 只有工作区干净后才创建 `codex/m4-systemd-fault`。
 
-M2 结果见 [M2 evidence](docs/verification/evidence/M2_mjpeg_stream.md) 与 [M2 阶段总结](docs/stage_summaries/M2_mjpeg_browser_stream.md)。
+M3 结果见 [M3 evidence](docs/verification/evidence/M3_motion_event.md) 与 [M3 阶段总结](docs/stage_summaries/M3_motion_event_logging.md)。
 
 ## 必读入口
 

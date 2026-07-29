@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include "sense.h"
+#include "status_json.h"
 
 #include <errno.h>
 #include <netinet/in.h>
@@ -72,63 +73,16 @@ static int send_response(int fd, const char *status, const char *content_type,
     return send_all(fd, body, body_size);
 }
 
-static void json_escape(const char *source, char *destination,
-                        size_t destination_size)
-{
-    size_t output = 0;
-
-    if (destination_size == 0) {
-        return;
-    }
-
-    while ((*source != '\0') && (output + 1 < destination_size)) {
-        unsigned char value = (unsigned char)*source++;
-
-        if ((value == '"') || (value == '\\')) {
-            if (output + 2 >= destination_size) {
-                break;
-            }
-            destination[output++] = '\\';
-            destination[output++] = (char)value;
-        } else if (value >= 0x20) {
-            destination[output++] = (char)value;
-        }
-    }
-    destination[output] = '\0';
-}
-
 static void handle_status(int fd, AppState *state)
 {
     StatusSnapshot snapshot;
-    char device[SENSE_DEVICE_MAX * 2];
-    char escaped_error[SENSE_ERROR_MAX * 2];
-    char error_json[(SENSE_ERROR_MAX * 2) + 3];
-    char body[1024];
+    char body[1280];
     int body_size;
 
     state_snapshot(state, &snapshot);
-    json_escape(snapshot.device, device, sizeof(device));
-    json_escape(snapshot.last_error, escaped_error, sizeof(escaped_error));
+    body_size = status_json_format(&snapshot, body, sizeof(body));
 
-    if (snapshot.last_error[0] == '\0') {
-        snprintf(error_json, sizeof(error_json), "null");
-    } else {
-        snprintf(error_json, sizeof(error_json), "\"%s\"", escaped_error);
-    }
-
-    body_size = snprintf(body, sizeof(body),
-        "{\"ok\":%s,\"degraded\":%s,\"device\":\"%s\","
-        "\"width\":%u,\"height\":%u,\"fps\":%.1f,"
-        "\"frame_count\":%llu,\"client_count\":%u,"
-        "\"motion_state\":false,\"event_count\":0,"
-        "\"last_error\":%s}\n",
-        snapshot.degraded ? "false" : "true",
-        snapshot.degraded ? "true" : "false",
-        device, snapshot.width, snapshot.height, snapshot.fps,
-        (unsigned long long)snapshot.frame_count, snapshot.client_count,
-        error_json);
-
-    if ((body_size > 0) && ((size_t)body_size < sizeof(body))) {
+    if (body_size > 0) {
         send_response(fd, "200 OK", "application/json", body,
                       (size_t)body_size);
     }

@@ -8,16 +8,21 @@
 主线程
   ├─ 配置和 AppState 初始化
   ├─ 启动 capture thread
+  ├─ 启动 motion worker thread
   └─ 运行 HTTP accept/poll 循环
 
 capture thread
   └─ V4L2 DQBUF -> 复制 JPEG -> 发布最新帧 -> QBUF
 
+motion worker thread
+  └─ 3 FPS 等待最新 JPEG -> 锁外灰度解码 -> 帧差
+     -> cooldown -> JSONL -> 更新 motion 状态
+
 HTTP client thread
   └─ 等待新帧 -> 复制最新 JPEG -> send multipart frame
 ```
 
-每个 HTTP 连接由独立客户端线程处理。退出时主线程设置停止状态，唤醒等待者，并等待采集线程和客户端线程完成。
+每个 HTTP 连接由独立客户端线程处理。退出时主线程设置停止状态，唤醒等待者，并等待采集、motion 和客户端线程完成。
 
 ## 最新帧策略
 
@@ -29,6 +34,12 @@ AppState 只保存最新完整 JPEG 帧和递增序号：
 
 代价是客户端不保证接收每一帧，且内存使用会随同时发送的客户端数量增加。
 
+## Motion 抽样策略
+
+motion worker 只在计划采样点复制最新 JPEG，随后在 AppState 锁外执行 libjpeg 解码和帧差，因此不会长时间阻塞采集线程或 HTTP 客户端。摄像头缺失、超时或 capture generation 变化时会清除当前 motion 状态并重建 baseline；恢复后的第一帧不产生事件。
+
+当前默认参数是 3 FPS、libjpeg `1/4` scaling、像素差阈值 25、变化比例阈值 5% 和 1500 ms cooldown。参数来源见 [M3 evidence](../verification/evidence/M3_motion_event.md)。
+
 ## 故障状态
 
 摄像头打开、格式协商或采集失败时：
@@ -38,6 +49,8 @@ AppState 只保存最新完整 JPEG 帧和递增序号：
 3. 采集线程等待后重新扫描 UVC Capture 节点。
 4. 意外致命错误和进程级恢复在 M4 交给 systemd 验证。
 
+motion worker 在 degraded 期间不产生事件；恢复后的第一张有效灰度帧只建立 baseline。
+
 ## 退出时序
 
 ```text
@@ -46,8 +59,9 @@ SIGINT/SIGTERM
   -> 唤醒 frame waiters
   -> 停止接收新连接
   -> capture cleanup
+  -> motion pipeline cleanup
   -> 等待现有 client workers
   -> 销毁 AppState
 ```
 
-M2 验收必须覆盖客户端刷新、关闭、重新连接和进程退出，实际结果记录到 [M2 证据](../verification/evidence/M2_mjpeg_stream.md)。
+M2 推流结果记录在 [M2 evidence](../verification/evidence/M2_mjpeg_stream.md)，M3 motion 与恢复结果记录在 [M3 evidence](../verification/evidence/M3_motion_event.md)。
