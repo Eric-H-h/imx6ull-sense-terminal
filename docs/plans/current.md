@@ -2,12 +2,12 @@
 
 ## 状态
 
-- 当前里程碑：M4，systemd 与故障注入，板端验收完成，等待提交和合并。
-- 当前分支：`codex/m4-systemd-fault`。
-- 已完成：M0、M1、M2、M3 已合入 `develop`；M4 功能与板端验收已完成。
-- 当前阶段状态：Completed；M4 PR 合入 `develop` 前不进入 M5 实现。
+- 当前里程碑：M5，测试报告、演示和发布包装，文档已完成，等待提交和合并。
+- 当前分支：`codex/m5-docs-demo`。
+- 已完成：M0、M1、M2、M3、M4 已合入 `develop`。
+- 当前阶段状态：Completed；M5 PR 合入 `develop` 前不执行 `develop -> main` 或打 `v0.1-mvp`。
 - MVP 路线：USB UVC first；OV5640 为可选增强项。
-- 目标发布时间：2026 年 7 月底前完成 MVP。
+- 目标发布时间：2026 年 7 月底前完成 MVP。板端功能闭环实际完成于 2026-08-20。
 
 本文件只维护执行顺序、验收条件、范围和协作约束。系统结构见 [architecture](../architecture/)，设计原因见 [ADR](../architecture/decisions/)，操作命令见 [how-to](../how-to/)。
 
@@ -54,7 +54,7 @@ MVP 不包含：
 | M2 | 浏览器 MJPEG 和状态接口 | Completed | [M2 summary](../stage_summaries/M2_mjpeg_browser_stream.md) |
 | M3 | motion event 与 JSONL | Completed | [M3 summary](../stage_summaries/M3_motion_event_logging.md) |
 | M4 | systemd 与故障注入 | Completed | [M4 summary](../stage_summaries/M4_systemd_fault_injection.md) |
-| M5 | 测试报告、演示和发布 | Planned | [test report](../verification/test-report.md) |
+| M5 | 测试报告、演示和发布 | Completed | [test report](../verification/test-report.md) |
 
 ## M2：已完成内容
 
@@ -127,25 +127,40 @@ M4 把 M3 daemon 安装为 `imx6ull-sense.service`，以 `debian:debian` 运行�
 - reboot 后无人登录即自动启动；JSONL 保留并继续追加。
 - [服务生命周期 runbook](../operations/runbooks/service-lifecycle.md)。
 
-详细证据见 [M4 evidence](../verification/evidence/M4_fault_injection.md)。M4 PR 合入 `develop` 前不开始 M5 发布包装。
+详细证据见 [M4 evidence](../verification/evidence/M4_fault_injection.md)。M4 已通过 PR #5 合入 `develop`（`bee388a`）。
 
-## M5：发布包装
+## M5：发布包装（Completed）
 
-交付：
+M5 不新增 daemon 能力。它把已验收事实整理成可演示、可审查、可发布的材料。
 
-- 综合测试报告。
-- README 与架构图反映最终实现。
-- 三分钟 Demo 流程和面试问答。
-- 已知限制和 fallback 说明。
-- `develop -> main` release MR/PR。
+已完成：
+
+- [综合测试报告](../verification/test-report.md)：硬件、功能、性能、故障注入和已知限制。
+- README 与 [架构总览](../architecture/overview.md) 反映最终实现。
+- [三分钟 Demo 脚本](../presentation/demo-script.md)。
+- [面试问答](../presentation/interview-qa.md) 与 [简历要点](../presentation/resume.md)。
+- 已知限制和 fallback 写入测试报告与 README。
+
+尚未在本分支执行：
+
+- 面向 `develop` 的 M5 PR。
+- `develop -> main` 发布合并。
 - 发布标签 `v0.1-mvp`。
+- 演示视频文件（按 Demo 脚本由操作者录制，不提交到仓库）。
+
+### M5 验收
+
+- 测试报告中的数值都能追溯到 M0-M4 evidence，没有推测填充。
+- Demo 脚本可在正式 systemd 路径上按时间轴走完。
+- README、HANDOFF、当前计划和架构文档状态一致。
+- 阶段总结写明进入发布合并的条件。
 
 ## Fallback
 
 - 某个 UVC 摄像头格式或 BSP 不兼容时，换另一款 Linux 免驱 UVC 摄像头。
 - MJPEG 性能不足时按顺序降低分辨率、FPS 和 JPEG 质量。
 - OV5640 只在 MVP 闭环后投入；连续两个晚上不通则停止。
-- HDMI、AI、录像和 OTA 不得占用 M2-M4 主线时间。
+- HDMI、AI、录像和 OTA 不得占用 M2-M5 主线时间。
 - 如果浏览器 stream 未闭环，暂停所有增强项。
 
 ## Git 与文档约束

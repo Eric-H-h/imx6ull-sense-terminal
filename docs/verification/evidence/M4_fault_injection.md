@@ -2,7 +2,7 @@
 
 ## 状态
 
-In Progress。M3 已完成，M4 板端预检查中的 Wi-Fi 阻塞已解除。systemd 正式安装、正常生命周期、`kill -9`、非法配置、事件日志写失败和 reboot 自启均已验证。尚未写阶段总结，也尚未提交。
+Completed。systemd 正式安装、正常生命周期、`kill -9`、非法配置、事件日志写失败和 reboot 自启均已验证。阶段总结见 [M4 systemd 与故障注入](../../stage_summaries/M4_systemd_fault_injection.md)；PR #5 已合入 `develop`。
 
 ## 预检查期间已解决的板端阻塞
 

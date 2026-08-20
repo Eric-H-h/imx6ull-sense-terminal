@@ -15,7 +15,7 @@ USB UVC 摄像头
   -> systemd 与故障注入
 ```
 
-先阅读 [架构总览](../architecture/overview.md) 和 [当前计划](../plans/current.md)。
+先阅读 [架构总览](../architecture/overview.md) 和 [当前计划](../plans/current.md)。综合结论见 [测试报告](../verification/test-report.md)。
 
 ## 2. 准备开发环境
 
@@ -35,20 +35,34 @@ cd /home/eric/projects/imx6ull-sense-terminal
 debian@192.168.7.2
 ```
 
-按照 [连接和部署开发板](../how-to/connect-and-deploy-board.md) 验证 OTG、RNDIS、SSH 和 SCP。
+按照 [连接和部署开发板](../how-to/connect-and-deploy-board.md) 验证 OTG、RNDIS、SSH 和 SCP。不要启用 `autowifi.service`。
 
 ## 4. 理解已经完成的阶段
 
-- [M0 阶段总结](../stage_summaries/M0_environment_and_board_baseline.md)：主机、交叉编译、网络、部署和板端运行。
-- [M1 阶段总结](../stage_summaries/M1_usb_uvc_camera_capture.md)：UVC 节点识别、格式枚举和首帧采集。
+- [M0](../stage_summaries/M0_environment_and_board_baseline.md)：主机、交叉编译、网络、部署和板端运行。
+- [M1](../stage_summaries/M1_usb_uvc_camera_capture.md)：UVC 节点识别、格式枚举和首帧采集。
+- [M2](../stage_summaries/M2_mjpeg_browser_stream.md)：浏览器 MJPEG 和 `/status`。
+- [M3](../stage_summaries/M3_motion_event_logging.md)：motion event 与 JSONL。
+- [M4](../stage_summaries/M4_systemd_fault_injection.md)：systemd 与故障注入。
+- [M5](../stage_summaries/M5_resume_demo_packaging.md)：测试报告、Demo 和发布包装。
 
 遇到类似问题时，先阅读 [Bug 复盘索引](../bug_reports/README.md)，不要重复从错误假设开始排查。
 
-## 5. 继续当前 M2
+## 5. 运行正式服务
 
-当前代码已经包含 V4L2 MJPEG 采集、共享最新帧、HTTP `/`、`/stream` 和 `/status`，但 M2 仍需要代码修复、板端和浏览器验收。
+正式安装和启停见 [服务生命周期](../operations/runbooks/service-lifecycle.md)。临时调试仍可用 [运行和检查 MJPEG 服务](../how-to/run-mjpeg-stream.md)。
 
-执行入口见 [运行和检查 MJPEG 服务](../how-to/run-mjpeg-stream.md)，验收结果写入 [M2 evidence](../verification/evidence/M2_mjpeg_stream.md)。
+浏览器：
+
+```text
+http://192.168.7.2:8080/
+```
+
+```sh
+curl --noproxy 192.168.7.2 http://192.168.7.2:8080/status
+```
+
+现场演示按 [Demo 脚本](../presentation/demo-script.md)。
 
 ## 6. 保存工作
 

@@ -27,7 +27,7 @@ Git 命令必须在 WSL 路径中执行，避免 Windows Git 通过 UNC 访问�
 
 连接和部署步骤见 [连接与部署开发板](../how-to/connect-and-deploy-board.md)。
 
-## M4 正式部署
+## 正式部署
 
 板端已验收的安装布局：
 

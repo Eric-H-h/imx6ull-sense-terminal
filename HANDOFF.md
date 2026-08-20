@@ -13,19 +13,18 @@ Git 命令必须在 WSL 路径执行。
 
 ## 当前状态
 
-- 当前分支：`codex/m4-systemd-fault`。
-- M0、M1、M2、M3：Completed，并已合入 `develop`。
-- M4：正式安装、生命周期、`kill -9`、非法配置、事件日志写失败和 reboot 自启均已验收；等待审查、提交与 PR。
-- M5：未开始。
+- 当前分支：`codex/m5-docs-demo`。
+- M0、M1、M2、M3、M4：Completed，并已合入 `develop`（M4 为 PR #5，`bee388a`）。
+- M5：测试报告、Demo 脚本、面试材料、简历要点和 README/架构对齐已完成；等待审查、提交与 PR。
 - 默认摄像头路线：USB UVC。
 - OV5640：MVP 后可选增强项。
 - 默认板端连接：`debian@192.168.7.2`，USB RNDIS。
 
-M4 工作区包含尚未提交的源码、脚本、unit、测试和文档；`.vscode/`、`tmp/` 和 `.grok/` 是无关或本机权限文件。不要删除来源不明的文件，不要执行 `git add .`。
+`.vscode/`、`tmp/` 和 `.grok/` 是无关或本机权限文件。不要删除来源不明的文件，不要执行 `git add .`。
 
 ## 当前实现边界
 
-M3 能力仍在，M4 已补上无人值守运行：
+M4 能力仍在，M5 不新增 daemon 功能：
 
 - 动态选择 UVC Capture 节点并以 MJPEG 640x480@30 推流。
 - motion：3 FPS 抽样、灰度帧差、threshold、cooldown、JSONL。
@@ -35,20 +34,21 @@ M3 能力仍在，M4 已补上无人值守运行：
 
 未实现或未完成：
 
-- M5 测试报告、Demo 和发布包装。
+- `develop -> main` 发布合并和 `v0.1-mvp` 标签。这两步在 M5 PR 合入 `develop` 之后单独做。
+- 按 [Demo 脚本](docs/presentation/demo-script.md) 录制演示视频；仓库只保存脚本，不提交视频文件。
 - OV5640 CSI/DVP。
 
 ## 下一步唯一主线
 
-收尾 M4，不提前进入 M5：
+收尾 M5，不提前打发布标签：
 
-1. 审查 M4 源码、测试、脚本、unit、文档和未跟踪文件清单。
+1. 审查 M5 文档清单（测试报告、Demo、面试、README、架构和阶段总结）。
 2. 按明确文件清单暂存并提交，不使用 `git add .`。
-3. 推送 `codex/m4-systemd-fault` 并创建面向 `develop` 的 PR。
+3. 推送 `codex/m5-docs-demo` 并创建面向 `develop` 的 PR。
 4. PR 合并后，本地 fast-forward 到最新 `develop`。
-5. 只有工作区干净后才创建 `codex/m5-docs-demo`。
+5. 再执行 `develop -> main` 发布合并并创建 `v0.1-mvp`。
 
-M4 结果见 [M4 evidence](docs/verification/evidence/M4_fault_injection.md) 与 [M4 阶段总结](docs/stage_summaries/M4_systemd_fault_injection.md)。操作见 [服务生命周期](docs/operations/runbooks/service-lifecycle.md)。
+M5 入口见 [综合测试报告](docs/verification/test-report.md)、[Demo 脚本](docs/presentation/demo-script.md) 与 [M5 阶段总结](docs/stage_summaries/M5_resume_demo_packaging.md)。
 
 ## 必读入口
 

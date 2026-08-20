@@ -2,10 +2,10 @@
 
 ## 阶段状态
 
-- 状态：Completed（待提交）
+- 状态：Completed
 - 完成日期：2026-08-20
 - 分支：`codex/m4-systemd-fault`
-- Commit：`9df25c5`
+- Commit：`9df25c5`（功能）、`6f631f6`（文档）；PR #5 合入 `develop` 为 `bee388a`
 
 ## 阶段目标
 
@@ -74,8 +74,4 @@
 
 ## 下一阶段进入条件
 
-1. 审查 M4 源码、脚本、unit、文档和未跟踪文件清单。
-2. 按明确文件清单提交 `codex/m4-systemd-fault`，不使用 `git add .`。
-3. 推送并创建面向 `develop` 的 PR。
-4. PR 合入后本地 fast-forward 到最新 `develop`。
-5. 工作区干净后再创建 `codex/m5-docs-demo`。
+上述条件已满足：PR #5 已合入 `develop`，本地已 fast-forward 到 `bee388a`，并创建 `codex/m5-docs-demo`。M5 只做测试报告、Demo 和发布包装，不新增 daemon 功能。

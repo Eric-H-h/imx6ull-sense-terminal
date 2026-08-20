@@ -34,14 +34,10 @@ git log --oneline -5
 当前工作分支是：
 
 ```text
-codex/m4-systemd-fault
-```
-
-后续计划分支：
-
-```text
 codex/m5-docs-demo
 ```
+
+M5 合入 `develop` 之后，再执行 `develop -> main` 并创建 `v0.1-mvp`。不要把工作分支直接合并到 `main`。
 
 只有上一里程碑已验收、已合并且工作区干净时，才从 `develop` 创建下一分支。
 
