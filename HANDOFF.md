@@ -13,44 +13,42 @@ Git 命令必须在 WSL 路径执行。
 
 ## 当前状态
 
-- 当前分支：`codex/m3-motion-event`。
-- M0、M1、M2：Completed，并已合入 `develop`。
-- M3：功能、代码检查和板端验收 Completed，等待 commit 与 PR。
-- M4-M5：未开始。
+- 当前分支：`codex/m4-systemd-fault`。
+- M0、M1、M2、M3：Completed，并已合入 `develop`。
+- M4：正式安装、生命周期、`kill -9`、非法配置、事件日志写失败和 reboot 自启均已验收；等待审查、提交与 PR。
+- M5：未开始。
 - 默认摄像头路线：USB UVC。
 - OV5640：MVP 后可选增强项。
 - 默认板端连接：`debian@192.168.7.2`，USB RNDIS。
 
-M3 工作区包含尚未提交的源码、测试、构建入口和文档；`.vscode/` 与 `tmp/` 是无关未跟踪内容。不要删除来源不明的文件，不要执行 `git add .`。
+M4 工作区包含尚未提交的源码、脚本、unit、测试和文档；`.vscode/`、`tmp/` 和 `.grok/` 是无关或本机权限文件。不要删除来源不明的文件，不要执行 `git add .`。
 
 ## 当前实现边界
 
-M3 已实现并通过验收：
+M3 能力仍在，M4 已补上无人值守运行：
 
 - 动态选择 UVC Capture 节点并以 MJPEG 640x480@30 推流。
-- latest JPEG 以 3 FPS 抽样，libjpeg 缩放解码到 grayscale。
-- 帧差 score、两层 threshold、cooldown 和 JSONL event log。
-- `/status` 输出真实 motion state、score、采样 FPS 和 event count。
-- camera missing/recovery 时清除 baseline，恢复第一帧不产生假事件。
-- 一个浏览器客户端与 motion 并行运行30分钟，stream 30 FPS、RSS delta 0。
+- motion：3 FPS 抽样、灰度帧差、threshold、cooldown、JSONL。
+- 正式路径：`/usr/local/bin/imx6ull-sense`、`/etc/imx6ull-sense/config.json`、`/var/lib/imx6ull-sense/`、`imx6ull-sense.service`。
+- `Restart=on-failure`；配置错误退出码 78 不自动重启。
+- 摄像头缺失或事件日志写失败时服务保持运行并报告 degraded。
 
 未实现或未完成：
 
-- M4 systemd 正式部署和故障注入。
-- M5 发布包装。
+- M5 测试报告、Demo 和发布包装。
 - OV5640 CSI/DVP。
 
 ## 下一步唯一主线
 
-收尾 M3，不提前进入 M4：
+收尾 M4，不提前进入 M5：
 
-1. 审查 M3 源码、测试、文档和未跟踪文件清单。
+1. 审查 M4 源码、测试、脚本、unit、文档和未跟踪文件清单。
 2. 按明确文件清单暂存并提交，不使用 `git add .`。
-3. 推送 `codex/m3-motion-event` 并创建面向 `develop` 的 PR。
+3. 推送 `codex/m4-systemd-fault` 并创建面向 `develop` 的 PR。
 4. PR 合并后，本地 fast-forward 到最新 `develop`。
-5. 只有工作区干净后才创建 `codex/m4-systemd-fault`。
+5. 只有工作区干净后才创建 `codex/m5-docs-demo`。
 
-M3 结果见 [M3 evidence](docs/verification/evidence/M3_motion_event.md) 与 [M3 阶段总结](docs/stage_summaries/M3_motion_event_logging.md)。
+M4 结果见 [M4 evidence](docs/verification/evidence/M4_fault_injection.md) 与 [M4 阶段总结](docs/stage_summaries/M4_systemd_fault_injection.md)。操作见 [服务生命周期](docs/operations/runbooks/service-lifecycle.md)。
 
 ## 必读入口
 
@@ -67,6 +65,7 @@ M3 结果见 [M3 evidence](docs/verification/evidence/M3_motion_event.md) 与 [M
 - 不把 `/dev/videoX` 编号当作稳定身份；按 driver 和 Device Caps 选择 UVC 图像节点。
 - 当前 BSP 查询 PXP Video Output 节点曾触发内核 Oops，不要把 PXP 节点当作摄像头。
 - 网络失败按 OTG 接口、数据线、Windows RNDIS、`usb0` carrier、IP/SSH 的顺序排查。
+- 不要启用 `autowifi.service`。Wi-Fi/SDIO 阻塞见 [M4-DRV-WIFI-001](docs/bug_reports/M4-DRV-WIFI-001_ap6212_dhd_sdio_hang.md)。
 
 ## 文档纪律
 
@@ -76,5 +75,6 @@ M3 结果见 [M3 evidence](docs/verification/evidence/M3_motion_event.md) 与 [M
 - 正式运行事故：`docs/operations/postmortems/`。
 - 当前执行顺序：`docs/plans/current.md`。
 - 路线和长期选择原因：`docs/architecture/decisions/`。
+- 正式服务操作：`docs/operations/runbooks/`。
 
 不要再引用迁移前的根级编号文档、版本化当前计划或集中式设计决策汇总；所有入口以 `docs/README.md` 为准。

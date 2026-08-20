@@ -5,7 +5,7 @@
 - 状态：Completed
 - 完成日期：2026-07-26
 - 分支：`codex/m3-motion-event`
-- Commit：待提交
+- Commit：`209cb25`（PR #4 已合入 `develop`）
 
 ## 阶段目标
 

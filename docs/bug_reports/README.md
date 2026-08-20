@@ -65,6 +65,7 @@ M4-SVC-SYSTEMD-001_restart_policy_not_applied.md
 | M3-ENV-PROXY-001 | M3 | WSL 环境 / APT / Proxy | 是，直到显式传递代理 | sudo 清理用户代理环境后，APT 直连 Ubuntu archive 超时 | Resolved | [M3-ENV-PROXY-001](M3-ENV-PROXY-001_sudo_apt_drops_proxy.md) |
 | M3-OPS-SSH-001 | M3 | 测试自动化 / SSH / stdin | 是，直到隔离 SSH stdin | SSH 消费管道中的剩余 Bash 脚本，导致后续部署、证据和清理命令未执行 | Resolved | [M3-OPS-SSH-001](M3-OPS-SSH-001_ssh_consumes_piped_script_stdin.md) |
 | M3-OPS-WSL-002 | M3 | 测试自动化 / WSL / PowerShell | 是，首次30分钟 runner 未存活 | CRLF 和短生命周期父 shell 导致进度命令异常、后台 runner 退出 | Resolved | [M3-OPS-WSL-002](M3-OPS-WSL-002_powershell_wsl_runner_lifecycle.md) |
+| M4-DRV-WIFI-001 | M4 | 内核 / Wi-Fi / SDIO | 是，直到停止自动拉起 `wlan0` | AP6212 DHD/SDIO 打开路径可导致板端用户态失去响应 | 项目范围 Mitigated，底层 BSP 根因待独立深挖 | [M4-DRV-WIFI-001](M4-DRV-WIFI-001_ap6212_dhd_sdio_hang.md) |
 
 ## 当前需关注风险
 
@@ -74,7 +75,8 @@ M4-SVC-SYSTEMD-001_restart_policy_not_applied.md
 | Windows Git 通过 UNC 路径访问 WSL 仓库时可能误判文件状态 | 全阶段 | Git 命令统一在 WSL 内部 `/home/eric/projects/imx6ull-sense-terminal` 下执行 |
 | UVC 摄像头可能暴露意外格式或设备编号 | M1 | 先做枚举和一帧采集，再写大段 V4L2 代码 |
 | PXP V4L2 查询路径会触发内核 Oops | M1 及后续 | 不把 PXP 输出节点当作摄像头；需要 PXP 时另行定位 BSP 驱动 |
-| WSL 代理可能接管板端私网请求 | M2-M5 | curl 使用 `--noproxy 192.168.7.2`，并配置 `NO_PROXY` |
+| WSL/Windows 代理或 TUN 可能接管板端私网请求 | M2-M5 | curl 使用 `--noproxy 192.168.7.2`；同时核对 RNDIS 网卡、路由、源地址和 SSH banner |
 | sudo 后 APT 可能丢失用户代理 | M3-M5 | 对需要联网的单次 APT 命令显式设置 `Acquire::Proxy` |
 | 管道执行的自动化脚本可能被 SSH 消费 stdin | M3-M5 | 不需要远端 stdin 的命令统一使用 `ssh -n` 或 `</dev/null` |
 | Windows/WSL 长期 runner 可能受 CRLF 和父 shell 生命周期影响 | M3-M5 | UTF-8 LF stdin；由独立前台 WSL 进程持有完整测试生命周期 |
+| AP6212 DHD/SDIO 打开路径可能阻塞板端用户态 | M4 及后续 | 禁用 `autowifi` 自动启动，保持 `wlan0` down，部署和验收使用 USB RNDIS |

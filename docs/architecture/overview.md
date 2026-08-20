@@ -2,7 +2,7 @@
 
 ## 当前边界
 
-项目运行在野火 EBF6ULL S1 Pro / i.MX6ULL 开发板上。M3 已完成验收，当前落地的主链路是：
+项目运行在野火 EBF6ULL S1 Pro / i.MX6ULL 开发板上。M4 已完成板端验收，当前落地的主链路是：
 
 ```text
 USB UVC 摄像头
@@ -29,15 +29,16 @@ USB UVC 摄像头
 - JPEG 低频灰度解码和逐像素帧差。
 - threshold、cooldown、JSONL 事件追加写入。
 - `/status` 输出真实 motion 状态、score、采样 FPS 和事件计数。
+- systemd 安装、开机自启、崩溃恢复和配置错误 fail-safe。
 
-当前实现不包含 YUYV 软件 JPEG 编码、正式 systemd 部署或 OV5640 CSI 适配。
+当前实现不包含 YUYV 软件 JPEG 编码或 OV5640 CSI 适配。
 
 ## 目标闭环
 
 ```text
 M2 浏览器 MJPEG（Completed）
   -> M3 motion event + JSONL（Completed）
-  -> M4 systemd + 故障注入（Next）
+  -> M4 systemd + 故障注入（Completed）
   -> M5 演示、测试报告和发布
 ```
 
@@ -52,7 +53,7 @@ OV5640 是 UVC MVP 完成后的可选增强项，不进入当前关键路径。
 | `imx6ull-sense` | 采集、状态管理、HTTP 和后续 motion/event |
 | 浏览器或 `curl` | 消费页面、视频流和状态接口 |
 | WSL 开发主机 | 构建、部署、验证和保存文档证据 |
-| systemd | M4 后负责启动、重启和日志管理 |
+| systemd | 启动、崩溃恢复、开机自启和 journal |
 
 ## 事实来源
 

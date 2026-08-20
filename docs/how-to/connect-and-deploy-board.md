@@ -37,15 +37,12 @@ ssh debian@192.168.7.2 'uname -a; ip addr show usb0'
 
 ## 部署当前程序
 
+正式安装和启停见 [服务生命周期](../operations/runbooks/service-lifecycle.md)。调试仍可用临时路径：
+
 ```sh
 cd /home/eric/projects/imx6ull-sense-terminal
-scp app/daemon/imx6ull-sense debian@192.168.7.2:/tmp/
+scp app/daemon/build/arm/imx6ull-sense debian@192.168.7.2:/tmp/
 scp config/config.json debian@192.168.7.2:/tmp/
-```
-
-板端运行：
-
-```sh
 ssh debian@192.168.7.2 '/tmp/imx6ull-sense -c /tmp/config.json'
 ```
 

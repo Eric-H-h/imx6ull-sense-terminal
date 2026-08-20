@@ -62,8 +62,9 @@ M2 不实现插件 ABI，也不猜测 OV5640 的节点、driver 或格式。详�
 
 M3 复用 M2 的 latest JPEG，以 3 FPS 低频抽样并使用 libjpeg `1/4` scaling 解码到 160x120 grayscale。耗时操作在 AppState 锁外完成，不改变 UVC MJPEG pass-through 主链路。选择依据和板端性能数据见 [M3 evidence](../verification/evidence/M3_motion_event.md)。
 
-## M4 计划组件
+## M4 已实现组件
 
-- systemd unit 的正式安装和启用。
-- 启动、停止、重启和诊断 runbook。
-- kill、reboot、camera missing 和 bad config 故障注入。
+- `imx6ull-sense.service`：`User=debian`，`Restart=on-failure`，`RestartPreventExitStatus=78`。
+- 安装脚本将二进制、配置和 unit 放到正式路径，默认不 enable/start。
+- 摄像头缺失、事件日志写失败进入 degraded；崩溃由 systemd 拉起；非法配置以 78 退出。
+- 操作见 [服务生命周期](../operations/runbooks/service-lifecycle.md)，证据见 [M4 evidence](../verification/evidence/M4_fault_injection.md)。

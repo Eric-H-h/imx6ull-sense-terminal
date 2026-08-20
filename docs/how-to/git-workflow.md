@@ -34,14 +34,12 @@ git log --oneline -5
 当前工作分支是：
 
 ```text
-codex/m2-mjpeg-stream
+codex/m4-systemd-fault
 ```
 
 后续计划分支：
 
 ```text
-codex/m3-motion-event
-codex/m4-systemd-fault
 codex/m5-docs-demo
 ```
 
