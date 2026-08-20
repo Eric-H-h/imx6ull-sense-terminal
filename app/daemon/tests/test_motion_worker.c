@@ -107,7 +107,8 @@ static void test_snapshot_tracks_capture_generation(void)
     first_generation = snapshot.capture_generation;
     CHECK(first_generation != 0U);
 
-    state_set_degraded(&state, "/dev/video-test", "camera missing");
+    state_set_camera_unavailable(&state, "/dev/video-test",
+                                 "camera missing");
     CHECK(state_wait_jpeg_snapshot(&state, &snapshot) ==
           JPEG_SNAPSHOT_UNAVAILABLE);
 
@@ -188,7 +189,8 @@ static void test_worker_logs_motion_and_rebuilds_after_recovery(void)
     CHECK(status.motion_sample_fps > 0.0);
     CHECK(status.event_count == 1U);
 
-    state_set_degraded(&state, "/dev/video-test", "camera missing");
+    state_set_camera_unavailable(&state, "/dev/video-test",
+                                 "camera missing");
     state_set_capture_active(&state, "/dev/video-test", 64U, 64U);
     CHECK(state_publish_frame(&state, base_jpeg, (size_t)base_size) == 0);
     sleep_ms(450L);
@@ -205,6 +207,69 @@ static void test_worker_logs_motion_and_rebuilds_after_recovery(void)
     free(base_jpeg);
     free(changed_jpeg);
     (void)unlink(path);
+}
+
+static void test_worker_reports_event_log_failure(void)
+{
+    unsigned char *base_jpeg = NULL;
+    unsigned char *changed_jpeg = NULL;
+    unsigned long base_size = 0U;
+    unsigned long changed_size = 0U;
+    SenseConfig config;
+    AppState state;
+    StatusSnapshot status;
+    MotionWorkerContext context;
+    pthread_t worker;
+
+    if (access("/dev/full", W_OK) != 0) {
+        return;
+    }
+
+    create_test_jpeg(0, &base_jpeg, &base_size);
+    create_test_jpeg(1, &changed_jpeg, &changed_size);
+    CHECK((base_jpeg != NULL) && (changed_jpeg != NULL));
+    if ((base_jpeg == NULL) || (changed_jpeg == NULL)) {
+        free(base_jpeg);
+        free(changed_jpeg);
+        return;
+    }
+
+    memset(&config, 0, sizeof(config));
+    snprintf(config.event_log, sizeof(config.event_log), "/dev/full");
+    config.motion_enabled = 1;
+    config.motion_sample_fps = 3U;
+    config.motion_jpeg_scale_denom = 4U;
+    config.motion_pixel_delta_threshold = 25U;
+    config.motion_changed_ratio_threshold = 0.05;
+    config.motion_cooldown_ms = 300U;
+
+    CHECK(state_init(&state) == 0);
+    state_configure_motion(&state, config.motion_enabled);
+    context.config = &config;
+    context.state = &state;
+
+    state_set_capture_active(&state, "/dev/video-test", 64U, 64U);
+    CHECK(state_publish_frame(&state, base_jpeg, (size_t)base_size) == 0);
+    CHECK(pthread_create(&worker, NULL, motion_worker_thread_main,
+                         &context) == 0);
+
+    sleep_ms(450L);
+    CHECK(state_publish_frame(&state, changed_jpeg,
+                              (size_t)changed_size) == 0);
+    sleep_ms(450L);
+    state_snapshot(&state, &status);
+
+    CHECK(status.degraded == 1);
+    CHECK(status.camera_state == SENSE_CAMERA_ACTIVE);
+    CHECK(status.event_log_state == SENSE_EVENT_LOG_UNAVAILABLE);
+    CHECK(strstr(status.last_error, "event log write failed") != NULL);
+    CHECK(status.event_count == 1U);
+
+    state_request_stop(&state);
+    CHECK(pthread_join(worker, NULL) == 0);
+    state_destroy(&state);
+    free(base_jpeg);
+    free(changed_jpeg);
 }
 
 static void test_disabled_worker_exits_cleanly(void)
@@ -234,6 +299,7 @@ int main(void)
 {
     test_snapshot_tracks_capture_generation();
     test_worker_logs_motion_and_rebuilds_after_recovery();
+    test_worker_reports_event_log_failure();
     test_disabled_worker_exits_cleanly();
 
     if (failure_count != 0) {

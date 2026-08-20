@@ -10,6 +10,26 @@
 #define SENSE_ERROR_MAX 256
 #define SENSE_EVENT_PATH_MAX 256
 
+typedef enum {
+    SENSE_EXIT_OK = 0,
+    SENSE_EXIT_FATAL = 1,
+    SENSE_EXIT_USAGE = 2,
+    SENSE_EXIT_CONFIG = 78
+} SenseExitCode;
+
+typedef enum {
+    SENSE_CAMERA_INITIALIZING = 0,
+    SENSE_CAMERA_ACTIVE,
+    SENSE_CAMERA_UNAVAILABLE
+} SenseCameraState;
+
+typedef enum {
+    SENSE_EVENT_LOG_INITIALIZING = 0,
+    SENSE_EVENT_LOG_DISABLED,
+    SENSE_EVENT_LOG_OK,
+    SENSE_EVENT_LOG_UNAVAILABLE
+} SenseEventLogState;
+
 typedef struct {
     char device[SENSE_DEVICE_MAX];
     unsigned int width;
@@ -28,6 +48,8 @@ typedef struct {
 
 typedef struct {
     int degraded;
+    SenseCameraState camera_state;
+    SenseEventLogState event_log_state;
     char device[SENSE_DEVICE_MAX];
     unsigned int width;
     unsigned int height;
@@ -40,6 +62,8 @@ typedef struct {
     double motion_sample_fps;
     uint64_t event_count;
     char last_error[SENSE_ERROR_MAX];
+    uint64_t last_error_at_ms;
+    double uptime_seconds;
 } StatusSnapshot;
 
 typedef enum {
@@ -82,10 +106,15 @@ typedef struct {
     double motion_score;
     double motion_sample_fps;
     uint64_t event_count;
-    int degraded;
+    uint64_t started_ns;
+    SenseCameraState camera_state;
+    SenseEventLogState event_log_state;
+    uint64_t camera_error_at_ms;
+    uint64_t event_log_error_at_ms;
     int stop;
     char device[SENSE_DEVICE_MAX];
-    char last_error[SENSE_ERROR_MAX];
+    char camera_error[SENSE_ERROR_MAX];
+    char event_log_error[SENSE_ERROR_MAX];
 } AppState;
 
 typedef struct {
@@ -110,8 +139,10 @@ int state_should_stop(AppState *state);
 void state_wait_for_clients(AppState *state);
 void state_set_capture_active(AppState *state, const char *device,
                               unsigned int width, unsigned int height);
-void state_set_degraded(AppState *state, const char *device,
-                        const char *error);
+void state_set_camera_unavailable(AppState *state, const char *device,
+                                  const char *error);
+void state_set_event_log_ok(AppState *state);
+void state_set_event_log_unavailable(AppState *state, const char *error);
 int state_publish_frame(AppState *state, const void *frame, size_t frame_size);
 int state_wait_frame(AppState *state, uint64_t *last_sequence,
                      unsigned char **buffer, size_t *capacity,
