@@ -55,32 +55,32 @@ int main(int argc, char **argv)
         if (strcmp(argv[i], "-c") == 0) {
             if (++i >= argc) {
                 print_usage(argv[0]);
-                return 2;
+                return SENSE_EXIT_USAGE;
             }
             config_path = argv[i];
         } else if ((strcmp(argv[i], "-h") == 0) ||
                    (strcmp(argv[i], "--help") == 0)) {
             print_usage(argv[0]);
-            return 0;
+            return SENSE_EXIT_OK;
         } else {
             print_usage(argv[0]);
-            return 2;
+            return SENSE_EXIT_USAGE;
         }
     }
 
     if (config_load(config_path, &config, error, sizeof(error)) < 0) {
         fprintf(stderr, "config error: %s\n", error);
-        return 2;
+        return SENSE_EXIT_CONFIG;
     }
 
     if (install_signal_handlers() < 0) {
         fprintf(stderr, "signal setup failed: %s\n", strerror(errno));
-        return 1;
+        return SENSE_EXIT_FATAL;
     }
 
     if (state_init(&state) < 0) {
         fprintf(stderr, "state initialization failed\n");
-        return 1;
+        return SENSE_EXIT_FATAL;
     }
     state_configure_motion(&state, config.motion_enabled);
 
@@ -93,7 +93,7 @@ int main(int argc, char **argv)
                        &capture_context) != 0) {
         fprintf(stderr, "capture thread creation failed\n");
         state_destroy(&state);
-        return 1;
+        return SENSE_EXIT_FATAL;
     }
 
     if (pthread_create(&motion_thread, NULL, motion_worker_thread_main,
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
         state_request_stop(&state);
         pthread_join(capture_thread, NULL);
         state_destroy(&state);
-        return 1;
+        return SENSE_EXIT_FATAL;
     }
 
     printf("imx6ull-sense listening on 0.0.0.0:%d\n", config.http_port);
@@ -117,8 +117,8 @@ int main(int argc, char **argv)
     state_destroy(&state);
 
     if ((http_result < 0) && !g_signal_stop) {
-        return 1;
+        return SENSE_EXIT_FATAL;
     }
-    return 0;
+    return SENSE_EXIT_OK;
 }
 

@@ -37,9 +37,9 @@
 
 ## 文档状态
 
-- M0、M1、M2 已完成，证据和阶段总结已保存。
-- M3 功能和板端验收已完成，阶段总结待随代码提交。
-- M4、M5 尚未开始。
+- M0、M1、M2、M3 已完成，证据和阶段总结已保存。
+- M4 功能和板端验收已完成，阶段总结待随代码提交。
+- M5 尚未开始。
 - 网站源代码不放在 `docs/`；生成 HTML 保留在 `reports/`，源代码位于 `tools/report-sites/`。
 
 文档架构决定见 [ADR-0005](architecture/decisions/0005-use-docs-as-code-structure.md)。

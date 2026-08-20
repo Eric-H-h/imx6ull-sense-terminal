@@ -163,7 +163,7 @@ static int capture_once(CaptureContext *context, char *error,
         snprintf(error, error_size,
                  "no UVC Video Capture node matched selector '%s'",
                  context->config->device);
-        state_set_degraded(context->state, "none", error);
+        state_set_camera_unavailable(context->state, "none", error);
         return -1;
     }
 
@@ -339,7 +339,7 @@ cleanup:
         close(fd);
     }
     if ((result < 0) && !state_should_stop(context->state)) {
-        state_set_degraded(context->state, selected, error);
+        state_set_camera_unavailable(context->state, selected, error);
     }
     return result;
 }

@@ -16,6 +16,22 @@ static uint64_t monotonic_ns(void)
     return ((uint64_t)now.tv_sec * 1000000000ULL) + (uint64_t)now.tv_nsec;
 }
 
+static uint64_t realtime_ms(void)
+{
+    struct timespec now;
+
+    clock_gettime(CLOCK_REALTIME, &now);
+    return ((uint64_t)now.tv_sec * 1000ULL) +
+           ((uint64_t)now.tv_nsec / 1000000ULL);
+}
+
+static int state_is_degraded(const AppState *state)
+{
+    return (state->camera_state != SENSE_CAMERA_ACTIVE) ||
+           (state->event_log_state == SENSE_EVENT_LOG_INITIALIZING) ||
+           (state->event_log_state == SENSE_EVENT_LOG_UNAVAILABLE);
+}
+
 static void copy_text(char *destination, size_t destination_size,
                       const char *source)
 {
@@ -44,9 +60,12 @@ int state_init(AppState *state)
         return -1;
     }
 
-    state->degraded = 1;
+    state->started_ns = monotonic_ns();
+    state->camera_state = SENSE_CAMERA_INITIALIZING;
+    state->event_log_state = SENSE_EVENT_LOG_INITIALIZING;
+    state->camera_error_at_ms = realtime_ms();
     copy_text(state->device, sizeof(state->device), "none");
-    copy_text(state->last_error, sizeof(state->last_error),
+    copy_text(state->camera_error, sizeof(state->camera_error),
               "camera not initialized");
     return 0;
 }
@@ -91,23 +110,24 @@ void state_set_capture_active(AppState *state, const char *device,
 {
     pthread_mutex_lock(&state->lock);
     ++state->capture_generation;
-    state->degraded = 0;
+    state->camera_state = SENSE_CAMERA_ACTIVE;
     state->width = width;
     state->height = height;
     state->fps = 0.0;
     state->capture_base_count = state->frame_count;
     state->capture_started_ns = monotonic_ns();
-    state->last_error[0] = '\0';
+    state->camera_error[0] = '\0';
+    state->camera_error_at_ms = 0U;
     copy_text(state->device, sizeof(state->device), device);
     pthread_cond_broadcast(&state->frame_ready);
     pthread_mutex_unlock(&state->lock);
 }
 
-void state_set_degraded(AppState *state, const char *device,
-                        const char *error)
+void state_set_camera_unavailable(AppState *state, const char *device,
+                                  const char *error)
 {
     pthread_mutex_lock(&state->lock);
-    state->degraded = 1;
+    state->camera_state = SENSE_CAMERA_UNAVAILABLE;
     state->fps = 0.0;
     state->motion_state = 0;
     state->motion_score = 0.0;
@@ -115,8 +135,32 @@ void state_set_degraded(AppState *state, const char *device,
     if ((device != NULL) && (device[0] != '\0')) {
         copy_text(state->device, sizeof(state->device), device);
     }
-    copy_text(state->last_error, sizeof(state->last_error), error);
+    copy_text(state->camera_error, sizeof(state->camera_error), error);
+    state->camera_error_at_ms = realtime_ms();
     pthread_cond_broadcast(&state->frame_ready);
+    pthread_mutex_unlock(&state->lock);
+}
+
+void state_set_event_log_ok(AppState *state)
+{
+    pthread_mutex_lock(&state->lock);
+    if (state->event_log_state != SENSE_EVENT_LOG_DISABLED) {
+        state->event_log_state = SENSE_EVENT_LOG_OK;
+        state->event_log_error[0] = '\0';
+        state->event_log_error_at_ms = 0U;
+    }
+    pthread_mutex_unlock(&state->lock);
+}
+
+void state_set_event_log_unavailable(AppState *state, const char *error)
+{
+    pthread_mutex_lock(&state->lock);
+    if (state->event_log_state != SENSE_EVENT_LOG_DISABLED) {
+        state->event_log_state = SENSE_EVENT_LOG_UNAVAILABLE;
+        copy_text(state->event_log_error, sizeof(state->event_log_error),
+                  error);
+        state->event_log_error_at_ms = realtime_ms();
+    }
     pthread_mutex_unlock(&state->lock);
 }
 
@@ -220,7 +264,8 @@ JpegSnapshotStatus state_wait_jpeg_snapshot(AppState *state,
 
     pthread_mutex_lock(&state->lock);
     while ((state->frame_sequence <= snapshot->sequence) &&
-           !state->degraded && !state->stop && !g_signal_stop) {
+           (state->camera_state == SENSE_CAMERA_ACTIVE) && !state->stop &&
+           !g_signal_stop) {
         wait_result = pthread_cond_timedwait(&state->frame_ready, &state->lock,
                                              &deadline);
         if (wait_result == ETIMEDOUT) {
@@ -237,7 +282,7 @@ JpegSnapshotStatus state_wait_jpeg_snapshot(AppState *state,
         pthread_mutex_unlock(&state->lock);
         return JPEG_SNAPSHOT_STOPPED;
     }
-    if (state->degraded ||
+    if ((state->camera_state != SENSE_CAMERA_ACTIVE) ||
         (state->frame_generation != state->capture_generation)) {
         snapshot->sequence = state->frame_sequence;
         pthread_mutex_unlock(&state->lock);
@@ -305,6 +350,10 @@ void state_configure_motion(AppState *state, int enabled)
     state->motion_score = 0.0;
     state->motion_sample_fps = 0.0;
     state->event_count = 0U;
+    state->event_log_state = state->motion_enabled ?
+        SENSE_EVENT_LOG_OK : SENSE_EVENT_LOG_DISABLED;
+    state->event_log_error[0] = '\0';
+    state->event_log_error_at_ms = 0U;
     pthread_mutex_unlock(&state->lock);
 }
 
@@ -333,8 +382,12 @@ void state_reset_motion_sample(AppState *state)
 
 void state_snapshot(AppState *state, StatusSnapshot *snapshot)
 {
+    uint64_t now_ns;
+
     pthread_mutex_lock(&state->lock);
-    snapshot->degraded = state->degraded;
+    snapshot->degraded = state_is_degraded(state);
+    snapshot->camera_state = state->camera_state;
+    snapshot->event_log_state = state->event_log_state;
     snapshot->width = state->width;
     snapshot->height = state->height;
     snapshot->fps = state->fps;
@@ -346,7 +399,21 @@ void state_snapshot(AppState *state, StatusSnapshot *snapshot)
     snapshot->motion_sample_fps = state->motion_sample_fps;
     snapshot->event_count = state->event_count;
     copy_text(snapshot->device, sizeof(snapshot->device), state->device);
-    copy_text(snapshot->last_error, sizeof(snapshot->last_error),
-              state->last_error);
+    if ((state->event_log_state == SENSE_EVENT_LOG_UNAVAILABLE) &&
+        (state->event_log_error_at_ms >= state->camera_error_at_ms)) {
+        copy_text(snapshot->last_error, sizeof(snapshot->last_error),
+                  state->event_log_error);
+        snapshot->last_error_at_ms = state->event_log_error_at_ms;
+    } else if (state->camera_state != SENSE_CAMERA_ACTIVE) {
+        copy_text(snapshot->last_error, sizeof(snapshot->last_error),
+                  state->camera_error);
+        snapshot->last_error_at_ms = state->camera_error_at_ms;
+    } else {
+        snapshot->last_error[0] = '\0';
+        snapshot->last_error_at_ms = 0U;
+    }
+    now_ns = monotonic_ns();
+    snapshot->uptime_seconds = now_ns >= state->started_ns ?
+        (double)(now_ns - state->started_ns) / 1000000000.0 : 0.0;
     pthread_mutex_unlock(&state->lock);
 }

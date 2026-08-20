@@ -6,7 +6,7 @@
 Windows
   -> WSL Ubuntu: 构建和 Git
   -> USB RNDIS: 192.168.7.2
-  -> EBF6ULL S1 Pro: /tmp 下运行和验证
+  -> EBF6ULL S1 Pro: systemd 正式服务
   -> Windows 浏览器: HTTP 8080
 ```
 
@@ -27,14 +27,15 @@ Git 命令必须在 WSL 路径中执行，避免 Windows Git 通过 UNC 访问�
 
 连接和部署步骤见 [连接与部署开发板](../how-to/connect-and-deploy-board.md)。
 
-## M4 目标部署
+## M4 正式部署
+
+板端已验收的安装布局：
 
 ```text
 /usr/local/bin/imx6ull-sense
 /etc/imx6ull-sense/config.json
-/var/lib/imx6ull-sense/
-/var/log/imx6ull-sense/events.jsonl
+/var/lib/imx6ull-sense/events.jsonl
 systemd: imx6ull-sense.service
 ```
 
-上述正式路径在完成 M4 板端验证前属于目标状态，不应当作当前已部署事实。
+安装和启停见 [服务生命周期](../operations/runbooks/service-lifecycle.md)。临时 `/tmp` 运行只用于开发调试，不是默认部署方式。

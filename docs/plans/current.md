@@ -2,10 +2,10 @@
 
 ## 状态
 
-- 当前里程碑：M3，Motion Event 与 JSONL，验收完成并等待提交和合并。
-- 当前分支：`codex/m3-motion-event`。
-- 已完成：M0、M1、M2；M3 功能与板端验收已完成。
-- 当前阶段状态：Completed；M3 PR 合入 `develop` 前不进入 M4 实现。
+- 当前里程碑：M4，systemd 与故障注入，板端验收完成，等待提交和合并。
+- 当前分支：`codex/m4-systemd-fault`。
+- 已完成：M0、M1、M2、M3 已合入 `develop`；M4 功能与板端验收已完成。
+- 当前阶段状态：Completed；M4 PR 合入 `develop` 前不进入 M5 实现。
 - MVP 路线：USB UVC first；OV5640 为可选增强项。
 - 目标发布时间：2026 年 7 月底前完成 MVP。
 
@@ -53,7 +53,7 @@ MVP 不包含：
 | M1 | UVC 枚举、格式和真实首帧 | Completed | [M1 summary](../stage_summaries/M1_usb_uvc_camera_capture.md) |
 | M2 | 浏览器 MJPEG 和状态接口 | Completed | [M2 summary](../stage_summaries/M2_mjpeg_browser_stream.md) |
 | M3 | motion event 与 JSONL | Completed | [M3 summary](../stage_summaries/M3_motion_event_logging.md) |
-| M4 | systemd 与故障注入 | Planned | [M4 evidence](../verification/evidence/M4_fault_injection.md) |
+| M4 | systemd 与故障注入 | Completed | [M4 summary](../stage_summaries/M4_systemd_fault_injection.md) |
 | M5 | 测试报告、演示和发布 | Planned | [test report](../verification/test-report.md) |
 
 ## M2：已完成内容
@@ -110,18 +110,24 @@ M3 保留 M2 UVC MJPEG pass-through，通过 latest JPEG 以 3 FPS 抽样、libj
 - 静止 0 误报、10/10 挥手、持续运动 cooldown、摄像头恢复和 30 分钟并行稳定性证据。
 - 主机 `make verify`、ARM 固定构建脚本和 GCC analyzer。
 
-详细证据见 [M3 evidence](../verification/evidence/M3_motion_event.md)。M3 PR 合入 `develop` 前不开始 M4 源码或 systemd 修改。
+详细证据见 [M3 evidence](../verification/evidence/M3_motion_event.md)。M3 已通过 PR #4 合入 `develop`。
 
-## M4：systemd 与故障注入
+## M4：systemd 与故障注入（Completed）
 
-交付：
+M4 把 M3 daemon 安装为 `imx6ull-sense.service`，以 `debian:debian` 运行，工作目录 `/var/lib/imx6ull-sense`。`Restart=on-failure` 处理崩溃；配置错误退出码 78 不自动重启。
 
-- 安装并启用 `imx6ull-sense.service`。
-- `kill -9` 后自动恢复。
-- reboot 后自动启动。
-- camera missing 显示 degraded，恢复策略有证据。
-- bad config 以明确日志和非零状态 fail safe。
-- 形成 runbook、故障注入 evidence 和阶段总结。
+已完成：
+
+- 安装脚本与主机侧 package verify；安装本身不 enable/start。
+- `enable --now` 后正式路径运行，journal 可追踪。
+- 摄像头缺失 degraded、同进程恢复；SIGTERM 正常退出。
+- `kill -9` 后 systemd 拉起新进程。
+- 非法配置 fail-safe（退出码 78，无重启风暴）。
+- 事件日志写失败时推流继续，`event_log_state=unavailable`。
+- reboot 后无人登录即自动启动；JSONL 保留并继续追加。
+- [服务生命周期 runbook](../operations/runbooks/service-lifecycle.md)。
+
+详细证据见 [M4 evidence](../verification/evidence/M4_fault_injection.md)。M4 PR 合入 `develop` 前不开始 M5 发布包装。
 
 ## M5：发布包装
 

@@ -83,6 +83,24 @@ static void report_pipeline_error(MotionPipelineStatus status)
     }
 }
 
+static void update_event_log_health(AppState *state,
+                                    MotionPipelineStatus status,
+                                    const MotionPipelineResult *result)
+{
+    if (status == MOTION_PIPELINE_EVENT_LOG_ERROR) {
+        char error[SENSE_ERROR_MAX];
+        int saved_errno = errno;
+
+        snprintf(error, sizeof(error), "event log write failed: %s",
+                 strerror(saved_errno));
+        state_set_event_log_unavailable(state, error);
+        errno = saved_errno;
+    } else if ((status == MOTION_PIPELINE_OK) &&
+               (result->event_logged != 0)) {
+        state_set_event_log_ok(state);
+    }
+}
+
 static double observe_sample_rate(uint64_t now_ns,
                                   uint64_t *started_ns,
                                   uint64_t *sample_count)
@@ -191,6 +209,9 @@ void *motion_worker_thread_main(void *argument)
                                              &pipeline_config,
                                              &sample,
                                              &pipeline_result);
+
+            update_event_log_health(context->state, pipeline_status,
+                                    &pipeline_result);
 
             if ((pipeline_status == MOTION_PIPELINE_OK) ||
                 (pipeline_status == MOTION_PIPELINE_EVENT_LOG_ERROR)) {

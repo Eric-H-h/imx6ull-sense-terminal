@@ -1,12 +1,17 @@
 [Unit]
 Description=i.MX6ULL Sense Terminal
 After=network.target
+StartLimitIntervalSec=30
+StartLimitBurst=3
 
 [Service]
 Type=simple
+User=debian
+Group=debian
 ExecStart=/usr/local/bin/imx6ull-sense -c /etc/imx6ull-sense/config.json
-Restart=always
+Restart=on-failure
 RestartSec=3
+RestartPreventExitStatus=78
 WorkingDirectory=/var/lib/imx6ull-sense
 StandardOutput=journal
 StandardError=journal

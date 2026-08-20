@@ -47,7 +47,7 @@ motion worker 只在计划采样点复制最新 JPEG，随后在 AppState 锁外
 1. capture thread 更新 `degraded` 和 `last_error`。
 2. HTTP 服务继续提供 `/status`。
 3. 采集线程等待后重新扫描 UVC Capture 节点。
-4. 意外致命错误和进程级恢复在 M4 交给 systemd 验证。
+4. 进程被杀死后由 systemd `Restart=on-failure` 拉起；配置错误以退出码 78 停止，不自动重启。
 
 motion worker 在 degraded 期间不产生事件；恢复后的第一张有效灰度帧只建立 baseline。
 
@@ -64,4 +64,4 @@ SIGINT/SIGTERM
   -> 销毁 AppState
 ```
 
-M2 推流结果记录在 [M2 evidence](../verification/evidence/M2_mjpeg_stream.md)，M3 motion 与恢复结果记录在 [M3 evidence](../verification/evidence/M3_motion_event.md)。
+M2 推流结果记录在 [M2 evidence](../verification/evidence/M2_mjpeg_stream.md)，M3 motion 与恢复结果记录在 [M3 evidence](../verification/evidence/M3_motion_event.md)，M4 服务与故障注入记录在 [M4 evidence](../verification/evidence/M4_fault_injection.md)。
