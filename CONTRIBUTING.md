@@ -17,3 +17,4 @@ make -C app/daemon verify
 - 按明确文件清单暂存，不要使用 `git add .`。
 - 不要提交 `secrets.local.md`、构建产物、`tmp/`、原始抓帧或演示视频。
 - 改行为时附上板上现象、`/status` 或测试命令；问用法时说明开发板、摄像头和主机环境。
+- 改 `motion_detector.c`、事件 gate 或 M4 故障表时，同步 `site/js/motion-math.js`、`site/js/fault-machine.js` 和 `site/js/evidence-facts.js`。
