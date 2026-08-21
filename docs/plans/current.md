@@ -2,10 +2,10 @@
 
 ## 状态
 
-- 当前里程碑：M5，测试报告、演示和发布包装，文档已完成，等待提交和合并。
+- 当前里程碑：M5，测试报告、演示、公开说明和发布包装。
 - 当前分支：`codex/m5-docs-demo`。
 - 已完成：M0、M1、M2、M3、M4 已合入 `develop`。
-- 当前阶段状态：Completed；M5 PR 合入 `develop` 前不执行 `develop -> main` 或打 `v0.1-mvp`。
+- 当前阶段状态：文档已完成；M5 PR 合入 `develop` 前不执行 `develop -> main`、不打 `v0.1-mvp`、不把仓库改为 Public。
 - MVP 路线：USB UVC first；OV5640 为可选增强项。
 - 目标发布时间：2026 年 7 月底前完成 MVP。板端功能闭环实际完成于 2026-08-20。
 
@@ -136,23 +136,25 @@ M5 不新增 daemon 能力。它把已验收事实整理成可演示、可审查
 已完成：
 
 - [综合测试报告](../verification/test-report.md)：硬件、功能、性能、故障注入和已知限制。
-- README 与 [架构总览](../architecture/overview.md) 反映最终实现。
-- [三分钟 Demo 脚本](../presentation/demo-script.md)。
-- [面试问答](../presentation/interview-qa.md) 与 [简历要点](../presentation/resume.md)。
+- 根 README 面向复刻与公开说明；[架构总览](../architecture/overview.md) 反映最终实现。
+- [演示步骤](../presentation/demo-script.md) 与 [设计问答](../presentation/design-faq.md)。
+- MIT LICENSE 与 CONTRIBUTING。
 - 已知限制和 fallback 写入测试报告与 README。
+- 根目录不再放置 HANDOFF；简历要点不进入仓库。
 
-尚未在本分支执行：
+尚未执行：
 
 - 面向 `develop` 的 M5 PR。
 - `develop -> main` 发布合并。
 - 发布标签 `v0.1-mvp`。
-- 演示视频文件（按 Demo 脚本由操作者录制，不提交到仓库）。
+- 将 GitHub 仓库改为 Public。
+- 演示视频文件（按演示步骤由操作者录制，不提交到仓库）。
 
 ### M5 验收
 
 - 测试报告中的数值都能追溯到 M0-M4 evidence，没有推测填充。
-- Demo 脚本可在正式 systemd 路径上按时间轴走完。
-- README、HANDOFF、当前计划和架构文档状态一致。
+- 演示步骤可在正式 systemd 路径上按时间轴走完。
+- README 不出现当前分支、HANDOFF、简历或面试入口。
 - 阶段总结写明进入发布合并的条件。
 
 ## Fallback
@@ -182,4 +184,4 @@ M5 不新增 daemon 能力。它把已验收事实整理成可演示、可审查
 - `stage_summaries/MN_*.md` 有验收结论、关键变化、风险、ADR 和下一阶段条件。
 - Bug 报告及索引已更新，或明确写“无”。
 - Runtime Incidents 已链接 postmortem，或明确写“无”。
-- 当前计划、README 和 HANDOFF 的状态一致。
+- 当前计划与 README 的状态一致。

@@ -2,14 +2,14 @@
 
 ## 阶段状态
 
-- 状态：Completed（待提交）
+- 状态：Completed（待合入 `develop`）
 - 完成日期：2026-08-20
 - 分支：`codex/m5-docs-demo`
 - Commit：本总结随文档提交
 
 ## 阶段目标
 
-在不新增 daemon 功能的前提下，把 M0-M4 已验收事实整理成综合测试报告、Demo 脚本、面试/简历材料和与最终实现一致的 README/架构文档，为合入 `develop` 之后的 `v0.1-mvp` 发布做准备。
+在不新增 daemon 功能的前提下，把 M0-M4 已验收事实整理成综合测试报告、演示步骤、设计问答，以及面向公开复刻的 README / LICENSE，为合入 `develop` 之后的 `v0.1-mvp` 发布做准备。
 
 ## 验收结果
 
@@ -17,11 +17,12 @@
 | --- | --- | --- |
 | 综合测试报告 | Passed | [test-report.md](../verification/test-report.md)，数值均可追溯 |
 | README / 架构图 | Passed | 根 README 与 [overview](../architecture/overview.md) |
-| 三分钟 Demo | Passed | [demo-script.md](../presentation/demo-script.md) |
-| 面试问答与简历要点 | Passed | [interview-qa.md](../presentation/interview-qa.md)、[resume.md](../presentation/resume.md) |
+| 演示步骤 | Passed | [demo-script.md](../presentation/demo-script.md) |
+| 设计问答 | Passed | [design-faq.md](../presentation/design-faq.md) |
+| 公开说明 | Passed | MIT [LICENSE](../../LICENSE)、[CONTRIBUTING](../../CONTRIBUTING.md)；根目录无 HANDOFF，无简历入口 |
 | 已知限制与 fallback | Passed | 测试报告与 README |
 | HTTP `/status` 字段对齐 | Passed | [http-api.md](../reference/http-api.md) 含 health / camera / event_log |
-| 发布合并与标签 | 未在本阶段执行 | M5 PR 合入 `develop` 后再做 `develop -> main` 和 `v0.1-mvp` |
+| 发布合并、标签与 Public | 未在本阶段执行 | M5 PR 合入 `develop` 后再做 `develop -> main`、`v0.1-mvp`，然后改为 Public |
 
 ## 板端与运行事实
 
@@ -39,7 +40,7 @@ M5 没有新的板端测试。沿用：
 
 - 代码：无。
 - 配置：无。
-- 文档：新增测试报告终稿、Demo 脚本、简历要点、M5 阶段总结；对齐 HANDOFF、当前计划、README、架构图、HTTP API、how-to 和过期 evidence 状态。
+- 文档：测试报告终稿、演示步骤、设计问答、M5 阶段总结；README 改为公开复刻说明；新增 LICENSE 与 CONTRIBUTING；移除根目录 HANDOFF 和简历要点。
 
 ## 学习型 Bug / Blocker
 
@@ -60,7 +61,8 @@ M5 没有新的板端测试。沿用：
 ## 关键决策
 
 - 延续既有 ADR，M5 不新增架构决定。
-- 发布标签不在文档分支上提前打；先把 M5 合入 `develop`。
+- 一个仓库同时服务复刻和学习；公开门面不写简历或面试入口。
+- 发布标签不在文档分支上提前打；先把 M5 合入 `develop`，再改 GitHub 可见性。
 
 ## 下一阶段进入条件
 
@@ -68,4 +70,5 @@ M5 没有新的板端测试。沿用：
 2. 推送并创建面向 `develop` 的 PR。
 3. PR 合入后本地 fast-forward 到最新 `develop`。
 4. 执行 `develop -> main` 发布合并并创建 `v0.1-mvp`。
-5. 需要演示录像时，按 Demo 脚本由操作者录制，不提交视频文件。
+5. 将 GitHub 仓库改为 Public。
+6. 需要演示录像时，按演示步骤由操作者录制，不提交视频文件。

@@ -8,7 +8,7 @@
 debian@192.168.7.2
 ```
 
-必须连接开发板 USB OTG 接口，并使用支持数据传输的 USB 线。Windows 侧设备需要绑定 `USB RNDIS Adapter` 或等价 Remote NDIS 驱动。
+以板端 `usb0` 实际地址为准。必须连接开发板 USB OTG 接口，并使用支持数据传输的 USB 线。Windows 侧设备需要绑定 `USB RNDIS Adapter` 或等价 Remote NDIS 驱动。
 
 ## 串口备用链路
 
@@ -39,8 +39,9 @@ ssh debian@192.168.7.2 'uname -a; ip addr show usb0'
 
 正式安装和启停见 [服务生命周期](../operations/runbooks/service-lifecycle.md)。调试仍可用临时路径：
 
+在克隆后的仓库根目录：
+
 ```sh
-cd /home/eric/projects/imx6ull-sense-terminal
 scp app/daemon/build/arm/imx6ull-sense debian@192.168.7.2:/tmp/
 scp config/config.json debian@192.168.7.2:/tmp/
 ssh debian@192.168.7.2 '/tmp/imx6ull-sense -c /tmp/config.json'

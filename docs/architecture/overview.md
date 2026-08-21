@@ -58,7 +58,7 @@ flowchart TB
 M2 浏览器 MJPEG（Completed）
   -> M3 motion event + JSONL（Completed）
   -> M4 systemd + 故障注入（Completed）
-  -> M5 演示、测试报告和发布包装（Completed，待合入 develop）
+  -> M5 测试报告、演示和公开说明（Completed，待合入 develop）
 ```
 
 OV5640 是 UVC MVP 完成后的可选增强项，不进入当前关键路径。

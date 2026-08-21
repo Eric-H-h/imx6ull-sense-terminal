@@ -198,7 +198,7 @@ SSH command               -> success
 - 无线驱动的私有负数错误码必须回到对应源码定义中解释。
 - 多个网络管理器确实是风险，但应通过单变量隔离证明它是否为必要触发条件。
 
-## 面试可讲内容
+## 从现象到验证
 
 启动后串口和 SSH 间歇失去响应，同时日志出现 DHD `-35`。先用 U-Boot 临时 mask 获得稳定系统，再对比厂商镜像确认 `autowifi` 并非默认启用。通过“禁用 ConnMan 和 autowifi 后单独 `ifconfig wlan0 up`”把问题缩小到 AP6212 DHD/SDIO 打开路径，证明网络配置错误和服务竞争只是伴随因素。项目不依赖 Wi-Fi，因此采用删除 autowifi enable 链接、保留 ConnMan 和 USB RNDIS 的最小修复，并在无临时参数的正常重启中完成验证。
 

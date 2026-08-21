@@ -98,7 +98,7 @@ host_probe_exit:0
 - 单次 APT proxy 参数比直接修改全局配置更适合项目临时依赖安装。
 - `Ign` 后连续出现 `Err: Connection failed` 通常表示传输路径问题，不等于包不存在。
 
-## 面试可讲内容
+## 从现象到验证
 
 M3 引入 libjpeg 时，APT 能解析包但下载长期超时。通过日志确认请求绕过本地代理直连 Ubuntu archive，根因是 sudo 未保留用户代理环境。使用单次 APT proxy 参数后，295 KB 主包在 3 秒内下载完成，并通过真实编译探针验证依赖可用。
 

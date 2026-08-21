@@ -1,8 +1,8 @@
-# 三分钟 Demo 脚本
+# 怎样演示这个服务
 
-本脚本面向已经安装 `imx6ull-sense.service` 的 EBF6ULL S1 Pro。地址默认 `http://192.168.7.2:8080/`。所有结论必须能当场复现，不要口述未经验证的数字。
+面向已经安装 `imx6ull-sense.service` 的 EBF6ULL S1 Pro。地址默认 `http://192.168.7.2:8080/`。所有结论必须能当场复现，不要口述未经验证的数字。
 
-操作前：USB OTG 已连接，Windows RNDIS 为 `192.168.7.1/30`，`autowifi.service` 保持 disabled。观众挥手由操作者完成。
+操作前：USB OTG 已连接，Windows RNDIS 为 `192.168.7.1/30`，`autowifi.service` 保持 disabled。需要运动事件时，由操作者对摄像头挥手。
 
 ## 时间轴
 

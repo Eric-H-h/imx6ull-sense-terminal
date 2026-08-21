@@ -1,16 +1,11 @@
 # i.MX6ULL Sense Terminal
 
-运行在野火 EBF6ULL S1 Pro / i.MX6ULL 上的嵌入式 Linux 智能感知服务。
+A rebuildable MJPEG + motion + systemd service for NXP i.MX6ULL.
 
-## MVP
+在野火 EBF6ULL S1 Pro 上，用 USB 摄像头做一件完整的事：
 
 ```text
-USB UVC 摄像头
-  -> V4L2 采集
-  -> MJPEG 浏览器预览
-  -> motion event
-  -> JSONL 事件日志
-  -> systemd 与故障注入
+UVC 摄像头 → V4L2 采集 → 浏览器看画面 → 检测运动并记日志 → systemd 一直跑着
 ```
 
 ```mermaid
@@ -26,75 +21,85 @@ flowchart LR
   systemd[systemd] --> Daemon[imx6ull-sense]
 ```
 
-项目参考 uStreamer、mjpg-streamer、Motion 和 v4l-utils 的工程取舍，但最终演示使用本仓库实现的最小 daemon。设计原因见 [ADR](docs/architecture/decisions/)。
+这不是 uStreamer、mjpg-streamer 或 Motion 的封装。那些项目用来对照成熟软件如何划分采集、推流、事件和守护；最终在板上跑的、本仓库里读到的，是自己写的最小 daemon。这样你可以看懂每一段，也能在自己的硬件上从头做一遍。取舍见 [ADR-0001](docs/architecture/decisions/0001-use-uvc-first.md)、[ADR-0002](docs/architecture/decisions/0002-use-mjpeg-over-http.md)、[ADR-0003](docs/architecture/decisions/0003-build-minimal-daemon.md)。
 
-## 当前状态
+## 你需要什么
 
-- M0 环境、交叉编译、部署和板端运行：已完成。
-- M1 USB UVC 枚举、格式确认和 MJPG 首帧：已完成。
-- M2 V4L2 MJPEG 采集与 HTTP stream：已完成并合入 `develop`。
-- M3 motion event、JSONL 和状态接口：已完成并合入 `develop`。
-- M4 systemd 与故障注入：已完成并合入 `develop`（PR #5）。
-- M5 测试报告、Demo 和发布包装：文档已完成，等待提交和 PR。
+- 野火 EBF6ULL S1 Pro，或同系列 i.MX6ULL 开发板
+- Linux 免驱 USB UVC 摄像头
+- Windows + WSL，用于交叉编译
+- 开发板 USB OTG 数据线（默认 USB RNDIS；不要用板载 Wi-Fi，不要启用 `autowifi.service`）
 
-当前分支：`codex/m5-docs-demo`。
+涉及板级接线、USB、CSI 或设备树时，先查 [本地板级资料索引](docs/reference/hardware/local-board-documents.md)。厂商 PDF 不随仓库分发。
 
-功能闭环已在板上验收：MJPG 640x480@30、单客户端 30 分钟 30 FPS、motion 3 FPS、systemd 无人值守和故障注入。综合结论见 [测试报告](docs/verification/test-report.md)，演示步骤见 [Demo 脚本](docs/presentation/demo-script.md)。
+## 构建和运行
 
-## 仓库入口
+在克隆后的仓库根目录：
 
-| 内容 | 路径 |
-| --- | --- |
-| C daemon | `app/daemon/` |
-| 配置 | `config/config.json` |
-| 文档总入口 | [docs/README.md](docs/README.md) |
-| 当前执行计划 | [docs/plans/current.md](docs/plans/current.md) |
-| 系统架构 | [docs/architecture/overview.md](docs/architecture/overview.md) |
-| 操作指南 | [docs/how-to/](docs/how-to/) |
-| 服务生命周期 | [docs/operations/runbooks/service-lifecycle.md](docs/operations/runbooks/service-lifecycle.md) |
-| 验收证据 | [docs/verification/evidence/](docs/verification/evidence/) |
-| 阶段总结 | [docs/stage_summaries/](docs/stage_summaries/) |
-| 学习型 Bug | [docs/bug_reports/](docs/bug_reports/) |
-| 运行事故 | [docs/operations/postmortems/](docs/operations/postmortems/) |
-| Demo / 面试 | [docs/presentation/](docs/presentation/) |
-| systemd 模板 | `systemd/` |
+```sh
+make -C app/daemon verify
+./scripts/build-arm.sh
+```
 
-## 当前硬件路线
+安装和启停见 [服务生命周期](docs/operations/runbooks/service-lifecycle.md)。从零开始见 [教程](docs/tutorials/getting-started.md)。
 
-MVP 使用 USB UVC 摄像头。OV5640 只在 UVC 闭环完成后作为可选 DVP/CSI 增强项，不阻塞 M0-M5。
-
-涉及开发板接口、pinout、USB、CSI、时钟、电源或设备树时，先查 [本地板级资料索引](docs/reference/hardware/local-board-documents.md)，并以 EBF6ULL S1 Pro 原理图作为板级事实来源。
-
-默认板端连接：USB RNDIS `debian@192.168.7.2`。不要启用 `autowifi.service`。
-
-## 正式运行
-
-安装和启停见 [服务生命周期](docs/operations/runbooks/service-lifecycle.md)。浏览器打开：
+浏览器打开（板端地址以 `usb0` 为准，USB RNDIS 常见为 `192.168.7.2`）：
 
 ```text
 http://192.168.7.2:8080/
 ```
 
-从 WSL 检查状态时必须绕过代理：
+从 WSL 访问时必须绕过代理：
 
 ```sh
 curl --noproxy 192.168.7.2 http://192.168.7.2:8080/status
 ```
 
-## 已知限制
+## 已经验证什么
 
-- 只面向可信局域网，无认证、无 TLS。
-- 单客户端稳定性已验证，未做多客户端压力测试。
-- `/dev/videoX` 编号会变；按 `uvcvideo` 和 Device Caps 选择节点。
-- `event_count` 是进程内计数；JSONL 在磁盘上继续追加。
-- 板载 Wi-Fi 不是部署路径。
+数字来自板上验收，完整表见 [测试报告](docs/verification/test-report.md)。
 
-完整列表见 [测试报告](docs/verification/test-report.md)。
+| 项 | 结果 |
+| --- | --- |
+| 画面 | MJPG 640×480，单客户端 30 FPS，30 分钟 RSS 不涨 |
+| 运动 | 3 FPS 灰度帧差；静止 5 分钟 0 误报，挥手 10/10 |
+| 崩溃 | `kill -9` 后 systemd 拉起新进程 |
+| 配错 | 退出码 78，不出现重启风暴 |
+| 摄像头 | 拔掉后服务仍在（degraded），插回同一进程恢复 |
+| 重启 | 无人登录即自启，JSONL 继续追加 |
 
-## 记录规则
+## 按阶段学习
 
-- 每个阶段的真实命令和输出放在 `docs/verification/evidence/`。
-- 每个完成阶段在 `docs/stage_summaries/` 保存结论和证据链接。
-- 值得复盘的搭建或调试问题进入 `docs/bug_reports/`。
-- 正式运行中产生实际影响的事故进入 `docs/operations/postmortems/`。
-- 当前顺序只在 `docs/plans/current.md` 维护，路线原因写 ADR。
+每一段都有阶段总结和当时的命令记录：
+
+- [M0 环境与板端基线](docs/stage_summaries/M0_environment_and_board_baseline.md)
+- [M1 USB UVC 首帧](docs/stage_summaries/M1_usb_uvc_camera_capture.md)
+- [M2 浏览器 MJPEG](docs/stage_summaries/M2_mjpeg_browser_stream.md)
+- [M3 motion 与 JSONL](docs/stage_summaries/M3_motion_event_logging.md)
+- [M4 systemd 与故障注入](docs/stage_summaries/M4_systemd_fault_injection.md)
+- [M5 测试报告与发布说明](docs/stage_summaries/M5_resume_demo_packaging.md)
+
+## 做不到什么
+
+- 只面向可信局域网，没有登录，没有 TLS
+- 没有 H.264 / RTSP、录像、AI 检测，也没有把 OV5640 做成必选项
+- 单客户端稳定性已验证，没有做多客户端压测
+- `/dev/videoX` 编号会变；按 `uvcvideo` 和 Device Caps 选择节点
+- `event_count` 是进程内计数；JSONL 在磁盘上继续追加
+
+## 文档
+
+| 我需要 | 入口 |
+| --- | --- |
+| 从零跑起来 | [教程](docs/tutorials/getting-started.md) |
+| 系统怎么组成 | [架构](docs/architecture/overview.md) |
+| 验收数字 | [测试报告](docs/verification/test-report.md) |
+| 踩过的坑 | [Bug 复盘](docs/bug_reports/README.md) |
+| 怎样演示 | [演示步骤](docs/presentation/demo-script.md) |
+| 为什么这样实现 | [设计问答](docs/presentation/design-faq.md) |
+| 如何改这个仓库 | [CONTRIBUTING](CONTRIBUTING.md) |
+| 全部文档分类 | [docs/README.md](docs/README.md) |
+
+## License
+
+[MIT](LICENSE)

@@ -6,8 +6,9 @@ M2 已完成验收。本页保留可重复操作命令；真实结果见 [M2 验
 
 ## 构建和部署
 
+在克隆后的仓库根目录。交叉编译推荐 `./scripts/build-arm.sh`；下面是等价的手工命令：
+
 ```sh
-cd /home/eric/projects/imx6ull-sense-terminal
 make -C app/daemon clean all CROSS_COMPILE=arm-linux-gnueabihf-
 scp app/daemon/imx6ull-sense debian@192.168.7.2:/tmp/
 scp config/config.json debian@192.168.7.2:/tmp/

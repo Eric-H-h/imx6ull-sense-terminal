@@ -1,6 +1,6 @@
-# Interview Q&A
+# 设计问答
 
-答案只陈述仓库里已经验收的事实。数字必须能指回 [测试报告](../verification/test-report.md) 或对应 evidence。
+回答项目为什么这样实现。数字必须能指回 [测试报告](../verification/test-report.md) 或对应 evidence。
 
 ## Q1: 为什么不直接用 uStreamer 或 mjpg-streamer？
 

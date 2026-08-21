@@ -3,7 +3,7 @@
 ## 前置条件
 
 - Windows 已安装 Ubuntu WSL。
-- 仓库位于 `/home/eric/projects/imx6ull-sense-terminal`。
+- 后续命令在克隆后的仓库根目录执行。
 - 安装软件包时可以输入 WSL 用户的 sudo 密码。
 
 ## 安装基础工具
@@ -24,7 +24,6 @@ git --version
 ## 构建主机版本
 
 ```sh
-cd /home/eric/projects/imx6ull-sense-terminal
 make -C app/daemon verify
 ```
 
