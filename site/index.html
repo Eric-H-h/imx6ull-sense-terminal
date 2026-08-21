@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self'; style-src 'self';
+                 img-src 'self' data:; font-src 'self'; connect-src 'none';
+                 base-uri 'none'; form-action 'none'">
+  <title>i.MX6ULL Sense Terminal — 系统模型</title>
+  <link rel="icon" href="./svg/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="./css/site.css">
+</head>
+<body>
+  <div id="boot-error" class="boot-error" hidden>
+    脚本没有运行，所以横切图停在「seq —」、画布是空的。
+    不要双击 HTML。在仓库根执行
+    <code>python3 -m http.server 8090 --directory site</code>
+    然后打开 <a href="http://127.0.0.1:8090/">http://127.0.0.1:8090/</a>
+  </div>
+  <noscript>
+    <div class="boot-error">这个模型需要 JavaScript。请用本地 HTTP 打开，不要双击文件。</div>
+  </noscript>
+  <header class="site-header">
+    <div class="brand">
+      <img src="./svg/board.svg" width="120" height="72" alt="">
+      <div>
+        <h1>i.MX6ULL Sense Terminal</h1>
+        <p class="lede">这是系统模型，不是开发板直播，也没有连接 <code>192.168.7.2</code>。数字链回 <code>v0.1-mvp</code> 板上证据。</p>
+      </div>
+    </div>
+    <nav class="header-links">
+      <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub</a>
+      <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/releases/tag/v0.1-mvp">v0.1-mvp</a>
+      <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/LICENSE">MIT</a>
+    </nav>
+  </header>
+
+  <div class="cross-section" id="cross-section">
+    <span class="model-chip" aria-label="模型，未连接开发板">模型 · 未连接开发板</span>
+    <div class="cross-flow">
+      <div class="block" data-block="camera"><strong>1 摄像头</strong><span data-field="camera">uvc</span></div>
+      <div class="block" data-block="capture"><strong>2 采集</strong><span data-field="capture">30 FPS</span></div>
+      <div class="block" data-block="slot"><strong>3 最新一格</strong><span data-field="slot">seq —</span></div>
+      <div class="block" data-block="http"><strong>4 HTTP</strong><span data-field="http">copy/skip</span></div>
+      <div class="block" data-block="motion"><strong>5 motion</strong><span data-field="motion">3 FPS</span></div>
+    </div>
+    <p class="cross-note"><span data-field="sys">systemd active</span> · <span data-field="jsonl">jsonl 0 行</span></p>
+  </div>
+
+  <nav class="chapter-nav" aria-label="工作台">
+    <a href="#frame">一帧的一生</a>
+    <a href="#motion">像 daemon 那样看运动</a>
+    <a href="#fault">把系统弄坏</a>
+  </nav>
+  <p class="hint">拖动滑条或点按钮，横切图和下方会一起变。</p>
+
+  <section class="bench" id="frame">
+    <h2>一帧的一生</h2>
+    <div class="bench-grid">
+      <div class="panel">
+        <span class="model-chip">模型 · 未连接开发板</span>
+        <div class="controls">
+          <button type="button" id="play-btn" aria-label="播放或暂停">暂停</button>
+          <label>客户端速度
+            <input id="speed" type="range" min="5" max="100" value="100">
+          </label>
+          <label><input id="show-dropped" type="checkbox"> 显示丢弃的帧</label>
+          <button type="button" id="node-hint">节点选择</button>
+        </div>
+        <canvas class="ticket-canvas" id="ticket-canvas" width="900" height="220" aria-label="模型，未连接开发板"></canvas>
+        <pre class="jsonl-preview" id="node-panel" hidden></pre>
+      </div>
+      <div class="caption" id="frame-caption"></div>
+    </div>
+  </section>
+
+  <section class="bench" id="motion">
+    <h2>像 daemon 那样看运动</h2>
+    <div class="bench-grid">
+      <div class="panel">
+        <span class="model-chip">模型 · 未连接开发板</span>
+        <div class="controls">
+          <button type="button" id="wave-btn">挥手</button>
+          <button type="button" id="idle-btn">静止</button>
+          <label>像素差 <input id="pixel-delta" type="range" min="1" max="255" value="25"></label>
+          <label>比例阈值 <input id="ratio" type="range" min="1" max="50" value="5"></label>
+          <label>cooldown ms <input id="cooldown" type="range" min="0" max="5000" value="1500"></label>
+          <label>sample FPS <input id="sample-fps" type="range" min="1" max="5" value="3"></label>
+        </div>
+        <p id="slider-note"></p>
+        <div class="canvas-pair">
+          <figure>
+            <figcaption>透镜（几何色块，不是摄像头）</figcaption>
+            <canvas class="lens-canvas" id="lens-canvas" width="320" height="240" aria-label="模型，未连接开发板"></canvas>
+          </figure>
+          <figure>
+            <figcaption>daemon 看见的 160×120 灰图</figcaption>
+            <canvas class="gray-canvas" id="gray-canvas" width="320" height="240" aria-label="模型，未连接开发板"></canvas>
+          </figure>
+        </div>
+        <div class="ratio-bar" id="ratio-bar"><div class="ratio-fill" id="ratio-fill"></div><div class="ratio-mark" id="ratio-mark"></div></div>
+        <p id="phase-label">IDLE</p>
+        <pre class="jsonl-preview" id="motion-jsonl"></pre>
+      </div>
+      <div class="caption" id="motion-caption"></div>
+    </div>
+  </section>
+
+  <section class="bench" id="fault">
+    <h2>把系统弄坏</h2>
+    <div class="bench-grid">
+      <div class="panel">
+        <div class="controls" id="fault-buttons"></div>
+        <p id="fault-empty-note"></p>
+        <div class="fault-cols">
+          <div><strong>process</strong><pre class="status-json" id="proc-col"></pre></div>
+          <div><strong>/status 子集</strong><pre class="status-json" id="status-col"></pre></div>
+          <div><strong>jsonl</strong><pre class="jsonl-preview" id="jsonl-col"></pre></div>
+        </div>
+        <p id="systemd-bar"></p>
+      </div>
+      <div class="caption" id="fault-caption"></div>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub</a>
+    <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/releases/tag/v0.1-mvp">v0.1-mvp</a>
+    <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/test-report.md">测试报告</a>
+    <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/LICENSE">MIT</a>
+  </footer>
+  <script>
+    window.setTimeout(function () {
+      if (!window.__labReady) {
+        var el = document.getElementById("boot-error");
+        if (el) el.hidden = false;
+      }
+    }, 600);
+  </script>
+  <script type="module" src="./js/main.js"></script>
+</body>
+</html>

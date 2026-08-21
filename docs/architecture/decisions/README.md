@@ -12,6 +12,7 @@ ADR 保存影响硬件路线、接口、模块边界、性能、可靠性或文�
 | [0004](0004-camera-failure-degraded-mode.md) | Accepted | 摄像头失败进入 degraded 并重试 |
 | [0005](0005-use-docs-as-code-structure.md) | Accepted | 文档按用途建立唯一事实源 |
 | [0006](0006-defer-camera-source-seam.md) | Accepted | 推迟正式 CameraSource seam，保留通用帧模型 |
+| [0007](0007-pages-site-not-docs-root.md) | Accepted | 公开交互模型在 `site/`，Actions 从 main 发布，不用 `/docs` Pages |
 
 ## 状态
 
