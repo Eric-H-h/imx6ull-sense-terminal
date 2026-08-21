@@ -9,6 +9,7 @@ events.jsonl
 *.yuv
 *.jpg
 secrets.local.md
+docs/presentation/resume.md
 app/daemon/imx6ull-sense
 .cache/
 build/

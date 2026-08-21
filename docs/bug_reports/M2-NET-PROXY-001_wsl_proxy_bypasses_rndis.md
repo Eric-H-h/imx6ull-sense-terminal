@@ -95,7 +95,7 @@ export NO_PROXY="$no_proxy"
 - 调试网络时必须区分目标服务地址、代理地址和真实 TCP peer。
 - `curl -v` 中的 `Uses proxy env variable` 和 `Trying 127.0.0.1` 是定位代理劫持的关键证据。
 
-## 面试可讲内容
+## 从现象到验证
 
 板端服务已经监听，但 WSL curl 超时。通过 verbose 日志发现请求被本地 SOCKS 代理接管，没有直接走 USB RNDIS。配置 `NO_PROXY` 后立即恢复，证明根因在开发主机请求路径而非 daemon。该排查体现了从进程、监听端口到真实网络路径逐层缩小范围的方法。
 

@@ -4,9 +4,10 @@
 | --- | --- | --- |
 | M0 | Completed | [环境、交叉编译和板端 bring-up](M0_bringup.md) |
 | M1 | Completed | [USB UVC 枚举和首帧](M1_uvc_capture.md) |
-| M2 | In Progress | [MJPEG 浏览器推流](M2_mjpeg_stream.md) |
-| M3 | Planned | [Motion Event](M3_motion_event.md) |
-| M4 | Planned | [systemd 与故障注入](M4_fault_injection.md) |
+| M2 | Completed | [MJPEG 浏览器推流](M2_mjpeg_stream.md) |
+| M3 | Completed | [Motion Event](M3_motion_event.md) |
+| M4 | Completed | [systemd 与故障注入](M4_fault_injection.md) |
+| M5 | Completed | 无新的板端测试；综合结论见 [test-report.md](../test-report.md) |
 
 ## 记录规则
 

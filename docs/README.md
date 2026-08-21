@@ -17,7 +17,7 @@
 | 复盘开发调试问题 | [bug_reports/](bug_reports/) | 个人学习型 Bug 报告和跨阶段索引 |
 | 操作正式服务 | [operations/runbooks/](operations/runbooks/) | 服务安装、检查和恢复 |
 | 查看运行事故 | [operations/postmortems/](operations/postmortems/) | 实际影响、时间线、根因和整改 |
-| 准备演示或面试 | [presentation/](presentation/) | Demo 和面试材料 |
+| 演示或设计问答 | [presentation/](presentation/) | 演示步骤和设计说明 |
 | 阅读生成报告 | [reports/](reports/) | 可直接打开的 HTML 报告 |
 
 ## 唯一事实源规则
@@ -37,9 +37,8 @@
 
 ## 文档状态
 
-- M0、M1、M2、M3 已完成，证据和阶段总结已保存。
-- M4 功能和板端验收已完成，阶段总结待随代码提交。
-- M5 尚未开始。
+- M0、M1、M2、M3、M4 已完成，证据和阶段总结已保存并合入 `develop`。
+- M5 测试报告、演示步骤、设计问答和公开说明已完成；根目录不再使用 HANDOFF。PR、`develop -> main` 和 `v0.1-mvp` 尚未执行。
 - 网站源代码不放在 `docs/`；生成 HTML 保留在 `reports/`，源代码位于 `tools/report-sites/`。
 
 文档架构决定见 [ADR-0005](architecture/decisions/0005-use-docs-as-code-structure.md)。

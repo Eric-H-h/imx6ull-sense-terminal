@@ -10,13 +10,7 @@ Windows
   -> Windows 浏览器: HTTP 8080
 ```
 
-仓库实际路径：
-
-```text
-/home/eric/projects/imx6ull-sense-terminal
-```
-
-Git 命令必须在 WSL 路径中执行，避免 Windows Git 通过 UNC 访问时误判文件状态。具体操作见 [Git 工作流](../how-to/git-workflow.md)。
+构建和 Git 在克隆后的仓库根目录、于 WSL 中执行，避免 Windows Git 通过 UNC 访问时误判文件状态。具体操作见 [Git 工作流](../how-to/git-workflow.md)。
 
 ## 当前板端访问
 
@@ -25,9 +19,9 @@ Git 命令必须在 WSL 路径中执行，避免 Windows Git 通过 UNC 访问�
 - Windows 驱动：`USB RNDIS Adapter` 或等价 Remote NDIS 驱动
 - Wi-Fi `192.168.18.210` 不是默认部署路径
 
-连接和部署步骤见 [连接与部署开发板](../how-to/connect-and-deploy-board.md)。
+连接和部署步骤见 [连接和部署开发板](../how-to/connect-and-deploy-board.md)。
 
-## M4 正式部署
+## 正式部署
 
 板端已验收的安装布局：
 

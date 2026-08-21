@@ -43,7 +43,7 @@ http_server  -> state
 
 ## CameraSource 演进 seam
 
-当前 `capture_v4l2` 是 UVC/MJPEG 专用实现，不把它描述为所有 V4L2 摄像头的最终 interface。
+当前 `capture_v4l2` 是 UVC/MJPEG 专用实现，不把它描述为所有 V4L2 摄像头的最终 interface。M5 没有改变这一边界。
 
 当第二个真实 adapter 出现时，再提取 CameraSource module。该 module 应隐藏设备发现、格式协商、buffer 生命周期和具体 driver 差异，并向调用方提供包含以下元数据的帧：
 

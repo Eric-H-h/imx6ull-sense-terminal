@@ -48,4 +48,5 @@ M5_resume_demo_packaging.md
 | M1 | [M1 USB UVC 摄像头采集](M1_usb_uvc_camera_capture.md) | 已完成 |
 | M2 | [M2 MJPEG 浏览器推流](M2_mjpeg_browser_stream.md) | 已完成 |
 | M3 | [M3 Motion Event 与 JSONL](M3_motion_event_logging.md) | 已完成 |
-| M4 | [M4 systemd 与故障注入](M4_systemd_fault_injection.md) | 已完成，待提交 |
+| M4 | [M4 systemd 与故障注入](M4_systemd_fault_injection.md) | 已完成 |
+| M5 | [M5 测试报告、演示和发布包装](M5_resume_demo_packaging.md) | 已完成，待提交 |

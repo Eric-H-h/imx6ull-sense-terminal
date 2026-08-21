@@ -1,6 +1,6 @@
 # Bug 复盘索引
 
-本目录用于保存搭建、开发和调试过程中值得再次阅读的 Bug 或 blocker，目标是个人学习、经验复用和面试复盘，不是实际运行事故档案。
+本目录用于保存搭建、开发和调试过程中值得再次阅读的 Bug 或 blocker，目标是把可复用的排查过程记下来，不是实际运行事故档案。
 
 正式运行后造成服务中断、功能不可用、数据丢失或恢复失败的事故，记录到 [`../operations/postmortems/`](../operations/postmortems/)；两类记录不得用同一份文档混写。
 
@@ -24,7 +24,7 @@
 - 我当时的错误判断
 - 正确排查顺序
 - 可复用经验
-- 面试可讲内容
+- 从现象到验证
 - 后续跟进项
 
 新报告使用 [`_template.md`](_template.md)。判断标准不是“是否出现错误”，而是“以后是否值得再次阅读”。
@@ -72,7 +72,7 @@ M4-SVC-SYSTEMD-001_restart_policy_not_applied.md
 | 风险 | 相关阶段 | 当前缓解方式 |
 | --- | --- | --- |
 | 板端 Wi-Fi 可能仍不适合作为部署路径 | M1-M5 | 默认使用 USB RNDIS `192.168.7.2` |
-| Windows Git 通过 UNC 路径访问 WSL 仓库时可能误判文件状态 | 全阶段 | Git 命令统一在 WSL 内部 `/home/eric/projects/imx6ull-sense-terminal` 下执行 |
+| Windows Git 通过 UNC 路径访问 WSL 仓库时可能误判文件状态 | 全阶段 | Git 命令在 WSL 的仓库根目录执行，不要用 Windows Git 打 UNC 路径 |
 | UVC 摄像头可能暴露意外格式或设备编号 | M1 | 先做枚举和一帧采集，再写大段 V4L2 代码 |
 | PXP V4L2 查询路径会触发内核 Oops | M1 及后续 | 不把 PXP 输出节点当作摄像头；需要 PXP 时另行定位 BSP 驱动 |
 | WSL/Windows 代理或 TUN 可能接管板端私网请求 | M2-M5 | curl 使用 `--noproxy 192.168.7.2`；同时核对 RNDIS 网卡、路由、源地址和 SSH banner |

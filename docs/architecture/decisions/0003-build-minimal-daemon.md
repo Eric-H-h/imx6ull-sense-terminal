@@ -22,7 +22,7 @@ uStreamer 和 mjpg-streamer 已能解决类似的视频推流问题，但项目�
 
 ### Positive
 
-- 项目实现边界可解释、可调试、可在面试中 defend。
+- 项目实现边界可解释、可调试，设计取舍可被追问。
 - 只保留当前硬件和 MVP 所需能力。
 
 ### Negative

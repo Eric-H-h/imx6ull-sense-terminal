@@ -2,18 +2,13 @@
 
 ## Git 命令执行位置
 
-仓库实际位于：
-
-```text
-/home/eric/projects/imx6ull-sense-terminal
-```
-
-所有 Git 命令默认在 WSL 中执行。Windows Git 通过 UNC 路径访问时可能错误报告权限或 modified 状态。
+仓库在 WSL 中克隆和使用。所有 Git 命令在 WSL 的仓库根目录执行。Windows Git 通过 UNC 路径访问时可能错误报告权限或 modified 状态。
 
 ```sh
-wsl -d Ubuntu
-cd /home/eric/projects/imx6ull-sense-terminal
+git rev-parse --show-toplevel
 ```
+
+应得到当前克隆路径，而不是 `\\wsl.localhost\...`。
 
 ## 每次开始工作
 
@@ -29,19 +24,11 @@ git log --oneline -5
 
 - `develop`：日常集成分支。
 - `main`：稳定发布分支。
-- 每个里程碑从最新 `develop` 创建 `codex/mN-*` 分支。
+- 不要把功能分支直接合并到 `main`。
 
-当前工作分支是：
+本仓库里程碑曾使用 `codex/mN-*`（例如 `codex/m4-systemd-fault`）。新工作从最新 `develop` 拉出说明性分支即可。
 
-```text
-codex/m4-systemd-fault
-```
-
-后续计划分支：
-
-```text
-codex/m5-docs-demo
-```
+M0–M5 合入 `develop` 之后，再执行 `develop -> main` 并创建 `v0.1-mvp`。
 
 只有上一里程碑已验收、已合并且工作区干净时，才从 `develop` 创建下一分支。
 
