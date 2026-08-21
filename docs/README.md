@@ -18,7 +18,8 @@
 | 操作正式服务 | [operations/runbooks/](operations/runbooks/) | 服务安装、检查和恢复 |
 | 查看运行事故 | [operations/postmortems/](operations/postmortems/) | 实际影响、时间线、根因和整改 |
 | 演示或设计问答 | [presentation/](presentation/) | 演示步骤和设计说明 |
-| 阅读生成报告 | [reports/](reports/) | 可直接打开的 HTML 报告 |
+| 公开交互模型 | [`/site`](../site/) | 两分钟系统模型；Actions 从 `main` 发布，不是 `docs/` Pages |
+| 阅读生成报告 | [reports/](reports/) | M2 生成的 HTML，不是公开模型 |
 
 ## 唯一事实源规则
 
@@ -39,6 +40,7 @@
 
 - M0、M1、M2、M3、M4 已完成，证据和阶段总结已保存并合入 `develop`。
 - M5 测试报告、演示步骤、设计问答和公开说明已完成；根目录不再使用 HANDOFF。PR、`develop -> main` 和 `v0.1-mvp` 尚未执行。
-- 网站源代码不放在 `docs/`；生成 HTML 保留在 `reports/`，源代码位于 `tools/report-sites/`。
+- 公开交互模型源码在仓库根目录 `site/`，由 GitHub Actions 从 `main` 发布；不要把 Pages 设为 Deploy from branch `/docs`。
+- M2 生成 HTML 仍可留在 `reports/`；旧的 `tools/report-sites/` 不是公开模型。
 
 文档架构决定见 [ADR-0005](architecture/decisions/0005-use-docs-as-code-structure.md)。
