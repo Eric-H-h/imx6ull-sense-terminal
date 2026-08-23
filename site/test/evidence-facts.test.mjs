@@ -13,4 +13,5 @@ test("board facts match v0.1-mvp test-report defaults", () => {
   assert.equal(FACTS.restartSec, 3);
   assert.equal(FACTS.configExit, 78);
   assert.equal(FACTS.captureFps, 30.0);
+  assert.equal(FACTS.rssKb, 2968);
 });

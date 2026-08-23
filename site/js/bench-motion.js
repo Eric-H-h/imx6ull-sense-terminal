@@ -16,7 +16,6 @@ export function mountBenchMotion(store) {
   const mark = document.getElementById("ratio-mark");
   const phase = document.getElementById("phase-label");
   const jsonl = document.getElementById("motion-jsonl");
-  const caption = document.getElementById("motion-caption");
   const lensCtx = lens.getContext("2d");
   const grayCtx = gray.getContext("2d", { willReadFrequently: true });
 
@@ -26,13 +25,9 @@ export function mountBenchMotion(store) {
   let waving = false;
   let lastSampleAt = 0;
 
-  note.innerHTML = `滑条是实验室范围；daemon 配置见 <a href="${FACTS.sources.configuration}">configuration.md</a>（sample 1–30，cooldown 1–3600000）。0 ms cooldown 标为板上拒绝。`;
-  caption.innerHTML = `
-    <p>这是模型，未连接开发板。</p>
-    <p>3 FPS 抽样、160×120 灰图、像素差 ${FACTS.pixelDelta}、比例 ${FACTS.changedRatio}、cooldown ${FACTS.cooldownMs} ms。证据见 <a href="${FACTS.sources.m3}">M3</a>。</p>
-    <p>教学态 IDLE/MOTION/COOLDOWN 不是 <code>/status.motion_state</code>（那是布尔）。</p>
-    <p>静止应对 0 误报；过阈值才写 JSONL；cooldown 内不追加。</p>
-  `;
+  if (note && !note.textContent.trim()) {
+    note.innerHTML = `滑条是实验室范围；daemon 配置见 <a href="${FACTS.sources.configuration}">configuration.md</a>。`;
+  }
 
   waveBtn.addEventListener("click", () => {
     waving = true;
@@ -70,9 +65,9 @@ export function mountBenchMotion(store) {
     const h = FACTS.grayHeight;
     const cy = h / 2;
     const frame = rasterBlobFrame(w, h, cx, cy);
-    lensCtx.fillStyle = "#2b261f";
+    lensCtx.fillStyle = "#0d100e";
     lensCtx.fillRect(0, 0, lens.width, lens.height);
-    grayCtx.fillStyle = "#2b261f";
+    grayCtx.fillStyle = "#0d100e";
     grayCtx.fillRect(0, 0, gray.width, gray.height);
     const scaleX = lens.width / w;
     const scaleY = lens.height / h;
@@ -102,9 +97,9 @@ export function mountBenchMotion(store) {
             const gx = Math.floor(x * scaleX);
             const gy = Math.floor(y * scaleY);
             const p = (gy * gray.width + gx) * 4;
-            overlay.data[p] = 196;
-            overlay.data[p + 1] = 92;
-            overlay.data[p + 2] = 38;
+            overlay.data[p] = 217;
+            overlay.data[p + 1] = 130;
+            overlay.data[p + 2] = 24;
           }
         }
       }
