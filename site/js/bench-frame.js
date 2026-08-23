@@ -1,27 +1,24 @@
 import { FACTS } from "./evidence-facts.js";
 import { sendDurationMs } from "./http-skip.js";
 
-export function mountBenchFrame(store) {
+export function mountBenchFrame(store, options = {}) {
   const play = document.getElementById("play-btn");
+  const reduceMotion = Boolean(options.reduced);
   const speed = document.getElementById("speed");
   const dropped = document.getElementById("show-dropped");
   const hint = document.getElementById("node-hint");
   const panel = document.getElementById("node-panel");
   const canvas = document.getElementById("ticket-canvas");
-  const caption = document.getElementById("frame-caption");
+  const live = document.getElementById("frame-live");
   const ctx = canvas.getContext("2d");
 
-  function fillCaption() {
-    caption.innerHTML = `
-      <p>这是模型，未连接开发板。</p>
-      <p>AppState 只有一格；采集覆盖，不排队。</p>
-      <p>慢客户端发送期间槽位已更新，下次 copy 最新序号，中间号跳过。</p>
-      <p>采集在模型里仍是 ${FACTS.captureFps} FPS（板上单客户端 <a href="${FACTS.sources.m2}">${FACTS.captureFps}</a>）。卡片以约 ${FACTS.captureFps * 0.4} FPS 绘制，避免 30 张/秒不可读。</p>
-      <p>HTTP 跳号按模型时间计算，不是按画出来的票据张数。把速度滑条拖向左侧，再勾选「显示丢弃的帧」。</p>
-    `;
-  }
-
   play.addEventListener("click", () => {
+    if (reduceMotion) {
+      if (typeof options.stepOnce === "function") {
+        options.stepOnce(performance.now());
+      }
+      return;
+    }
     store.patch((s) => ({ ...s, playing: !s.playing }));
   });
   play.addEventListener("keydown", (event) => {
@@ -45,7 +42,7 @@ export function mountBenchFrame(store) {
   });
 
   store.subscribe((state) => {
-    play.textContent = state.playing ? "暂停" : "播放";
+    play.textContent = reduceMotion ? "步进" : state.playing ? "暂停" : "播放";
     panel.hidden = !state.camera.hintOpen;
     if (state.camera.hintOpen) {
       panel.textContent = `扫描 /dev/video0..63
@@ -54,16 +51,18 @@ VIDIOC_QUERYCAP：uvcvideo + Video Capture + Streaming
 再协商 MJPG ${FACTS.width}×${FACTS.height}@${FACTS.captureFps}
 节点号不是身份。详见 ${FACTS.sources.pxp}`;
     }
-    fillCaption();
+    if (live) {
+      live.textContent = `seq ${state.slot.seq}，已发送 ${state.http.lastSentSeq}，跳过 ${state.http.dropped.length}`;
+    }
     paint(state);
   });
 
   function paint(state) {
     const w = canvas.width;
     const h = canvas.height;
-    ctx.fillStyle = "#2b261f";
+    ctx.fillStyle = "#0d100e";
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "#d9d1c3";
+    ctx.fillStyle = "#9aa89f";
     ctx.font = "13px system-ui";
     ctx.fillText("采集覆盖 →", 16, 28);
     ctx.fillText("HTTP copy / skip", 16, 132);
@@ -79,34 +78,34 @@ VIDIOC_QUERYCAP：uvcvideo + Video Capture + Streaming
         continue;
       }
       ctx.beginPath();
-      ctx.fillStyle = skipped ? "#3d3830" : "#fffdf6";
-      ctx.strokeStyle = skipped ? "#6b7280" : "#c45c26";
+      ctx.fillStyle = skipped ? "#1b221f" : "#f5f7f6";
+      ctx.strokeStyle = skipped ? "#65716b" : "#2f6fdb";
       ctx.setLineDash(skipped ? [5, 4] : []);
       ctx.rect(x, 42, 62, 44);
       ctx.fill();
       ctx.stroke();
       ctx.setLineDash([]);
-      ctx.fillStyle = skipped ? "#9ca3af" : "#1f1a14";
+      ctx.fillStyle = skipped ? "#9aa89f" : "#121815";
       ctx.font = "bold 16px ui-serif, Georgia, serif";
       ctx.fillText(`#${s}`, x + 10, 70);
     }
 
-    ctx.fillStyle = "#fffdf6";
-    ctx.strokeStyle = "#c45c26";
+    ctx.fillStyle = "#171d1a";
+    ctx.strokeStyle = "#197255";
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.rect(640, 42, 230, 150);
     ctx.fill();
     ctx.stroke();
     ctx.lineWidth = 1;
-    ctx.fillStyle = "#c45c26";
+    ctx.fillStyle = "#197255";
     ctx.font = "12px system-ui";
     ctx.fillText("AppState slot", 656, 64);
-    ctx.fillStyle = "#1f1a14";
+    ctx.fillStyle = "#f5f7f6";
     ctx.font = "bold 42px ui-serif, Georgia, serif";
     ctx.fillText(String(seq), 656, 118);
     ctx.font = "13px system-ui";
-    ctx.fillStyle = "#6b7280";
+    ctx.fillStyle = "#9aa89f";
     ctx.fillText(`sent ${state.http.lastSentSeq}  ·  skip ${state.http.dropped.length}`, 656, 150);
     ctx.fillText(state.playing ? "模型时钟在走" : "已暂停", 656, 172);
   }

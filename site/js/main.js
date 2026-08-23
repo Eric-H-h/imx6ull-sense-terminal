@@ -8,6 +8,7 @@ import { mountCrossSection } from "./cross-section.js";
 import { mountBenchFrame } from "./bench-frame.js";
 import { mountBenchMotion } from "./bench-motion.js";
 import { mountBenchFault } from "./bench-fault.js";
+import { mountArchitecture } from "./architecture-flow.js";
 
 function initialState() {
   return {
@@ -65,10 +66,12 @@ function initialState() {
   };
 }
 
-function parseChapter(hash) {
-  const name = (hash || "#frame").replace("#", "");
-  if (name === "motion" || name === "fault" || name === "frame") {
-    return name;
+function parseLabTab(hash) {
+  if (hash === "#lab-motion" || hash === "#motion") {
+    return "motion";
+  }
+  if (hash === "#lab-fault" || hash === "#fault") {
+    return "fault";
   }
   return "frame";
 }
@@ -99,49 +102,128 @@ function stepHttpCapture(state, dt) {
 const store = createStore(initialState());
 const reduced = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const motionBench = mountBenchMotion(store);
+const tabs = {
+  frame: document.getElementById("tab-frame"),
+  motion: document.getElementById("tab-motion"),
+  fault: document.getElementById("tab-fault")
+};
+const panels = {
+  frame: document.getElementById("panel-frame"),
+  motion: document.getElementById("panel-motion"),
+  fault: document.getElementById("panel-fault")
+};
 
-mountCrossSection(document.getElementById("cross-section"), store);
-mountBenchFrame(store);
-mountBenchFault(store);
+const clockRef = { stepOnce: () => {} };
 
-function applyHash() {
-  const chapter = parseChapter(location.hash);
+const navBar = document.querySelector(".site-nav");
+const navToggle = document.getElementById("nav-toggle");
+function setNavOpen(open) {
+  navBar.classList.toggle("is-open", open);
+  navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+}
+navToggle.addEventListener("click", () => {
+  setNavOpen(!navBar.classList.contains("is-open"));
+});
+document.querySelectorAll(".nav-links a").forEach((link) => {
+  link.addEventListener("click", () => setNavOpen(false));
+});
+
+const tabOrder = ["frame", "motion", "fault"];
+
+function setTab(name) {
+  Object.entries(tabs).forEach(([key, btn]) => {
+    const selected = key === name;
+    btn.setAttribute("aria-selected", selected ? "true" : "false");
+    btn.tabIndex = selected ? 0 : -1;
+    panels[key].hidden = !selected;
+  });
   store.patch((s) => {
-    let next = { ...s, chapter };
-    if (chapter === "fault" && next.jsonl.lines.length === 0) {
+    let next = { ...s, chapter: name };
+    if (name === "fault" && next.jsonl.lines.length === 0) {
       next = seedDemoLine(next, next.modelMs);
     }
     return next;
   });
-  document.querySelectorAll(".chapter-nav a").forEach((a) => {
-    a.setAttribute("aria-current", a.getAttribute("href") === `#${chapter}` ? "true" : "false");
+}
+
+Object.entries(tabs).forEach(([name, btn]) => {
+  btn.addEventListener("click", () => {
+    const hash = name === "frame" ? "#lab" : `#lab-${name}`;
+    history.replaceState(null, "", hash);
+    setTab(name);
   });
+  btn.addEventListener("keydown", (event) => {
+    if (event.key !== "ArrowRight" && event.key !== "ArrowLeft" && event.key !== "Home" && event.key !== "End") {
+      return;
+    }
+    event.preventDefault();
+    const i = tabOrder.indexOf(name);
+    let next = i;
+    if (event.key === "ArrowRight") {
+      next = (i + 1) % tabOrder.length;
+    } else if (event.key === "ArrowLeft") {
+      next = (i - 1 + tabOrder.length) % tabOrder.length;
+    } else if (event.key === "Home") {
+      next = 0;
+    } else {
+      next = tabOrder.length - 1;
+    }
+    tabs[tabOrder[next]].focus();
+    tabs[tabOrder[next]].click();
+  });
+});
+
+mountCrossSection(document.getElementById("cross-section"), store);
+mountBenchFrame(store, {
+  reduced: reduced(),
+  stepOnce: (now) => clockRef.stepOnce(now)
+});
+mountBenchFault(store);
+mountArchitecture(document.getElementById("architecture"));
+
+function applyHash() {
+  const hash = location.hash || "#overview";
+  const navId = ["overview", "architecture", "decisions", "lab", "verification"].find((id) =>
+    hash === `#${id}` || hash.startsWith(`#lab`)
+  );
+  document.querySelectorAll(".nav-links a").forEach((a) => {
+    const href = a.getAttribute("href");
+    const current = href === "#lab" ? hash === "#lab" || hash.startsWith("#lab-") : href === hash;
+    a.setAttribute("aria-current", current ? "true" : "false");
+  });
+  if (hash.startsWith("#lab") || hash === "#motion" || hash === "#fault" || hash === "#frame") {
+    setTab(parseLabTab(hash));
+  }
 }
 
 window.addEventListener("hashchange", applyHash);
 applyHash();
 
-const sections = ["frame", "motion", "fault"].map((id) => document.getElementById(id));
-const observer = new IntersectionObserver(
+const navSections = ["overview", "architecture", "decisions", "lab", "verification"];
+const navObserver = new IntersectionObserver(
   (entries) => {
-    const visible = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-    if (!visible) {
+    const vis = entries.filter((e) => e.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+    if (!vis) {
       return;
     }
-    const chapter = visible.target.id;
-    if (store.get().chapter !== chapter) {
-      history.replaceState(null, "", `#${chapter}`);
-      applyHash();
-    }
+    const id = vis.target.id;
+    document.querySelectorAll(".nav-links a").forEach((a) => {
+      a.setAttribute("aria-current", a.getAttribute("href") === `#${id}` ? "true" : "false");
+    });
   },
-  { rootMargin: "-30% 0px -50% 0px", threshold: [0.2, 0.4] }
+  { rootMargin: "-20% 0px -60% 0px", threshold: [0.2, 0.4] }
 );
-sections.forEach((el) => observer.observe(el));
+navSections.forEach((id) => {
+  const el = document.getElementById(id);
+  if (el) {
+    navObserver.observe(el);
+  }
+});
 
 const clock = createClock({
   hz: FACTS.captureFps,
   maxStepsPerFrame: 4,
-  isPlaying: () => store.get().playing,
+  isPlaying: () => store.get().playing && !document.hidden,
   reducedMotion: reduced,
   onModelStep(dt) {
     store.patch((s) => {
@@ -154,13 +236,6 @@ const clock = createClock({
     store.patch((s) => faultTick(s, now));
   }
 });
+clockRef.stepOnce = (now) => clock.stepOnce(now);
 clock.start();
 window.__labReady = true;
-
-if (reduced()) {
-  document.getElementById("play-btn").addEventListener("click", () => {
-    if (!store.get().playing) {
-      clock.stepOnce(performance.now());
-    }
-  });
-}
