@@ -239,3 +239,7 @@ const clock = createClock({
 clockRef.stepOnce = (now) => clock.stepOnce(now);
 clock.start();
 window.__labReady = true;
+var labBoot = document.getElementById("lab-boot");
+if (labBoot) {
+  labBoot.hidden = true;
+}
