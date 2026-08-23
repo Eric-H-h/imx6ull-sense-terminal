@@ -10,11 +10,6 @@ export function createClock({ hz, maxStepsPerFrame, onModelStep, onFrame, isPlay
       return;
     }
     raf = requestAnimationFrame(frame);
-    if (reducedMotion()) {
-      last = now;
-      onFrame(now);
-      return;
-    }
     if (!isPlaying()) {
       last = now;
       onFrame(now);

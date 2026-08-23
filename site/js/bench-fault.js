@@ -1,4 +1,3 @@
-import { FACTS } from "./evidence-facts.js";
 import { applyAction } from "./fault-machine.js";
 
 const BUTTONS = [
@@ -20,7 +19,6 @@ export function mountBenchFault(store) {
   const jsonlCol = document.getElementById("jsonl-col");
   const systemdBar = document.getElementById("systemd-bar");
   const note = document.getElementById("fault-empty-note");
-  const caption = document.getElementById("fault-caption");
   bar.replaceChildren();
   BUTTONS.forEach(([action, label]) => {
     const btn = document.createElement("button");
@@ -32,13 +30,6 @@ export function mountBenchFault(store) {
     });
     bar.append(btn);
   });
-
-  caption.innerHTML = `
-    <p>这是模型。五种坏法结局对齐 <a href="${FACTS.sources.m4}">M4</a> 子集，不美化。</p>
-    <p>SIGTERM 正常退出不拉起；kill -9 约 ${FACTS.restartSec} s 后新 PID；非法配置退出码 ${FACTS.configExit} 不风暴。</p>
-    <p>ENOSPC 要点「尝试追加一次」才把 event_log 打成 unavailable；计数是 gate emit，写失败也加。</p>
-    <p>reboot 保留旧 JSONL，不自动追加。完整 JSON 见 <a href="${FACTS.sources.httpApi}">http-api.md</a>。</p>
-  `;
 
   store.subscribe((state) => {
     bar.querySelectorAll("button").forEach((btn) => {

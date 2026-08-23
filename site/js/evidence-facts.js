@@ -13,6 +13,8 @@ export const FACTS = {
   restartSec: 3,
   configExit: 78,
   jsonlPath: "/var/lib/imx6ull-sense/events.jsonl",
+  rssKb: 2968,
+  cpuPercent: "16.3–16.6",
   sources: {
     testReport: `${BLOB}docs/verification/test-report.md`,
     m2: `${BLOB}docs/verification/evidence/M2_mjpeg_stream.md`,

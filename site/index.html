@@ -5,139 +5,345 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self'; style-src 'self';
-                 img-src 'self' data:; font-src 'self'; connect-src 'none';
+                 img-src 'self' data:; font-src 'self'; connect-src 'self';
                  base-uri 'none'; form-action 'none'">
-  <title>i.MX6ULL Sense Terminal — 系统模型</title>
+  <title>i.MX6ULL Sense Terminal</title>
   <link rel="icon" href="./svg/favicon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./css/site.css">
 </head>
 <body>
-  <div id="boot-error" class="boot-error" hidden>
-    脚本没有运行，所以横切图停在「seq —」、画布是空的。
-    不要双击 HTML。在仓库根执行
-    <code>python3 -m http.server 8090 --directory site</code>
-    然后打开 <a href="http://127.0.0.1:8090/">http://127.0.0.1:8090/</a>
-  </div>
-  <noscript>
-    <div class="boot-error">这个模型需要 JavaScript。请用本地 HTTP 打开，不要双击文件。</div>
-  </noscript>
-  <header class="site-header">
-    <div class="brand">
-      <img src="./svg/board.svg" width="120" height="72" alt="">
-      <div>
-        <h1>i.MX6ULL Sense Terminal</h1>
-        <p class="lede">这是系统模型，不是开发板直播，也没有连接 <code>192.168.7.2</code>。数字链回 <code>v0.1-mvp</code> 板上证据。</p>
-      </div>
-    </div>
-    <nav class="header-links">
+  <header class="site-nav">
+    <a class="nav-mark" href="#overview">
+      <img src="./svg/favicon.svg" width="18" height="18" alt="">
+      Sense Terminal
+    </a>
+    <button type="button" class="nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="nav-links">菜单</button>
+    <nav id="nav-links" class="nav-links" aria-label="章节">
+      <a href="#overview">Overview</a>
+      <a href="#architecture">Architecture</a>
+      <a href="#decisions">Decisions</a>
+      <a href="#lab">Lab</a>
+      <a href="#verification">Verification</a>
       <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub</a>
-      <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/releases/tag/v0.1-mvp">v0.1-mvp</a>
-      <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/LICENSE">MIT</a>
     </nav>
   </header>
 
-  <div class="cross-section" id="cross-section">
-    <span class="model-chip" aria-label="模型，未连接开发板">模型 · 未连接开发板</span>
-    <div class="cross-flow">
-      <div class="block" data-block="camera"><strong>1 摄像头</strong><span data-field="camera">uvc</span></div>
-      <div class="block" data-block="capture"><strong>2 采集</strong><span data-field="capture">30 FPS</span></div>
-      <div class="block" data-block="slot"><strong>3 最新一格</strong><span data-field="slot">seq —</span></div>
-      <div class="block" data-block="http"><strong>4 HTTP</strong><span data-field="http">copy/skip</span></div>
-      <div class="block" data-block="motion"><strong>5 motion</strong><span data-field="motion">3 FPS</span></div>
-    </div>
-    <p class="cross-note"><span data-field="sys">systemd active</span> · <span data-field="jsonl">jsonl 0 行</span></p>
-  </div>
-
-  <nav class="chapter-nav" aria-label="工作台">
-    <a href="#frame">一帧的一生</a>
-    <a href="#motion">像 daemon 那样看运动</a>
-    <a href="#fault">把系统弄坏</a>
-  </nav>
-  <p class="hint">拖动滑条或点按钮，横切图和下方会一起变。</p>
-
-  <section class="bench" id="frame">
-    <h2>一帧的一生</h2>
-    <div class="bench-grid">
-      <div class="panel">
-        <span class="model-chip">模型 · 未连接开发板</span>
-        <div class="controls">
-          <button type="button" id="play-btn" aria-label="播放或暂停">暂停</button>
-          <label>客户端速度
-            <input id="speed" type="range" min="5" max="100" value="100">
-          </label>
-          <label><input id="show-dropped" type="checkbox"> 显示丢弃的帧</label>
-          <button type="button" id="node-hint">节点选择</button>
-        </div>
-        <canvas class="ticket-canvas" id="ticket-canvas" width="900" height="220" aria-label="模型，未连接开发板"></canvas>
-        <pre class="jsonl-preview" id="node-panel" hidden></pre>
-      </div>
-      <div class="caption" id="frame-caption"></div>
+  <section class="band band-dark hero" id="overview">
+    <div class="wrap hero-inner">
+      <p class="eyebrow">EBF6ULL S1 Pro · Linux 4.19 · systemd 241</p>
+      <h1>i.MX6ULL Sense Terminal</h1>
+      <p class="hero-lead">面向资源受限 ARM Linux 平台的<br>轻量级视觉感知与可靠运行服务。</p>
+      <p class="hero-actions">
+        <a class="btn btn-primary" href="#architecture">查看系统架构</a>
+        <a class="btn btn-ghost" href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub 源码</a>
+      </p>
+      <dl class="plaque">
+        <div><dt>平台</dt><dd>i.MX6ULL / ARMv7</dd></div>
+        <div><dt>核心</dt><dd>C11 + pthread</dd></div>
+        <div><dt>视频</dt><dd>V4L2 + MJPEG</dd></div>
+        <div><dt>运行</dt><dd>systemd</dd></div>
+      </dl>
     </div>
   </section>
 
-  <section class="bench" id="motion">
-    <h2>像 daemon 那样看运动</h2>
-    <div class="bench-grid">
-      <div class="panel">
-        <span class="model-chip">模型 · 未连接开发板</span>
-        <div class="controls">
-          <button type="button" id="wave-btn">挥手</button>
-          <button type="button" id="idle-btn">静止</button>
-          <label>像素差 <input id="pixel-delta" type="range" min="1" max="255" value="25"></label>
-          <label>比例阈值 <input id="ratio" type="range" min="1" max="50" value="5"></label>
-          <label>cooldown ms <input id="cooldown" type="range" min="0" max="5000" value="1500"></label>
-          <label>sample FPS <input id="sample-fps" type="range" min="1" max="5" value="3"></label>
-        </div>
-        <p id="slider-note"></p>
-        <div class="canvas-pair">
-          <figure>
-            <figcaption>透镜（几何色块，不是摄像头）</figcaption>
-            <canvas class="lens-canvas" id="lens-canvas" width="320" height="240" aria-label="模型，未连接开发板"></canvas>
-          </figure>
-          <figure>
-            <figcaption>daemon 看见的 160×120 灰图</figcaption>
-            <canvas class="gray-canvas" id="gray-canvas" width="320" height="240" aria-label="模型，未连接开发板"></canvas>
-          </figure>
-        </div>
-        <div class="ratio-bar" id="ratio-bar"><div class="ratio-fill" id="ratio-fill"></div><div class="ratio-mark" id="ratio-mark"></div></div>
-        <p id="phase-label">IDLE</p>
-        <pre class="jsonl-preview" id="motion-jsonl"></pre>
+  <section class="band band-light" id="goals">
+    <div class="wrap">
+      <h2>工程目标</h2>
+      <div class="goals">
+        <article>
+          <h3>实时性</h3>
+          <p class="goal-aim">保持约 30 FPS 的 MJPEG 推流；慢客户端可以跳帧，但不能堵住采集。</p>
+          <p class="goal-out">单客户端 30 分钟全程约 30.0 FPS，采集与发送解耦。</p>
+        </article>
+        <article>
+          <h3>资源意识</h3>
+          <p class="goal-aim">在 i.MX6ULL 上控制 CPU 与内存；运动检测用低频灰度抽样，不拆主链路。</p>
+          <p class="goal-out">3 FPS × 160×120 灰度；全栈 RSS 2968 KB（delta 0），CPU 约 16.3%–16.6%。</p>
+        </article>
+        <article>
+          <h3>可恢复性</h3>
+          <p class="goal-aim">摄像头、日志、进程故障都有可诊断状态；无人值守也能跑。</p>
+          <p class="goal-out">缺失摄像头保持 degraded；崩溃由 systemd 拉起；配错退出码 78 不风暴。</p>
+        </article>
       </div>
-      <div class="caption" id="motion-caption"></div>
     </div>
   </section>
 
-  <section class="bench" id="fault">
-    <h2>把系统弄坏</h2>
-    <div class="bench-grid">
-      <div class="panel">
-        <div class="controls" id="fault-buttons"></div>
-        <p id="fault-empty-note"></p>
-        <div class="fault-cols">
-          <div><strong>process</strong><pre class="status-json" id="proc-col"></pre></div>
-          <div><strong>/status 子集</strong><pre class="status-json" id="status-col"></pre></div>
-          <div><strong>jsonl</strong><pre class="jsonl-preview" id="jsonl-col"></pre></div>
-        </div>
-        <p id="systemd-bar"></p>
+  <section class="band band-light" id="architecture">
+    <div class="wrap">
+      <h2>系统架构</h2>
+      <p class="section-lead">UVC 采集写入唯一的 latest JPEG；HTTP 与 motion 都是这格的消费者。systemd 包着进程生命周期，不是数据通路上的一环。</p>
+      <div class="arch">
+        <svg class="arch-svg" viewBox="0 0 980 280" role="img" aria-labelledby="arch-title">
+          <title id="arch-title">从 UVC 到 HTTP、motion 与 systemd 的数据路径</title>
+          <g fill="none" stroke="#DCE4E0" stroke-width="2">
+            <path id="flow-path" d="M90 70 H250 H410 H570 V70 H740 M570 70 V190 H740"/>
+          </g>
+          <g class="arch-nodes">
+            <g class="node node-pcb" data-arch="camera" tabindex="0" role="button" aria-label="Camera">
+              <rect x="20" y="38" width="140" height="64" rx="6"/>
+              <text x="90" y="76" text-anchor="middle">Camera</text>
+            </g>
+            <g class="node node-pcb" data-arch="capture" tabindex="0" role="button" aria-label="Capture">
+              <rect x="180" y="38" width="140" height="64" rx="6"/>
+              <text x="250" y="76" text-anchor="middle">V4L2 Capture</text>
+            </g>
+            <g class="node node-data" data-arch="slot" tabindex="0" role="button" aria-label="Latest JPEG">
+              <rect x="340" y="38" width="140" height="64" rx="6"/>
+              <text x="410" y="76" text-anchor="middle">Latest JPEG</text>
+            </g>
+            <g class="node node-data" data-arch="http" tabindex="0" role="button" aria-label="HTTP MJPEG">
+              <rect x="670" y="38" width="160" height="64" rx="6"/>
+              <text x="750" y="76" text-anchor="middle">HTTP MJPEG</text>
+            </g>
+            <g class="node node-motion" data-arch="motion" tabindex="0" role="button" aria-label="Motion">
+              <rect x="500" y="158" width="140" height="64" rx="6"/>
+              <text x="570" y="196" text-anchor="middle">Motion 3 FPS</text>
+            </g>
+            <g class="node node-motion" data-arch="jsonl" tabindex="0" role="button" aria-label="JSONL">
+              <rect x="670" y="158" width="160" height="64" rx="6"/>
+              <text x="750" y="196" text-anchor="middle">JSONL + /status</text>
+            </g>
+          </g>
+          <rect class="sysd-shell" x="170" y="18" width="680" height="230" rx="10"/>
+          <text class="sysd-label" x="180" y="36">systemd 生命周期</text>
+        </svg>
+        <aside class="arch-detail" id="arch-detail">
+          <p class="arch-default">默认：摄像头 → 采集 → 唯一 JPEG 槽。浏览器走 HTTP 推流；motion 以约 3 FPS 抽样同一槽。选中模块可看职责与源码位置。</p>
+        </aside>
       </div>
-      <div class="caption" id="fault-caption"></div>
+    </div>
+  </section>
+
+  <section class="band band-light" id="decisions">
+    <div class="wrap">
+      <h2>工程决策</h2>
+      <article class="decision">
+        <div class="decision-q">
+          <h3>latest-frame 与慢客户端</h3>
+          <p><strong>问题</strong> 浏览器读取可能慢于采集。</p>
+          <p><strong>约束</strong> 不能无限排队，也不能让 HTTP 堵住 capture。</p>
+        </div>
+        <div class="decision-a">
+          <p><strong>决策</strong> AppState 只保留最新完整 JPEG 和递增 sequence。</p>
+          <p><strong>取舍</strong> 慢客户端会跳帧，但不堆积延迟。</p>
+          <p><strong>结果</strong> 采集与发送解耦；单客户端约 30 FPS。</p>
+          <p><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M2_mjpeg_stream.md">证据 · M2 推流</a>
+             · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/app/daemon/state.c">state.c</a></p>
+        </div>
+      </article>
+      <article class="decision">
+        <div class="decision-q">
+          <h3>低频运动检测</h3>
+          <p><strong>问题</strong> 每帧全分辨率 JPEG 解码会打满 ARM CPU。</p>
+          <p><strong>约束</strong> 不能明显拉低 MJPEG 主链路帧率。</p>
+        </div>
+        <div class="decision-a">
+          <p><strong>决策</strong> 约 3 FPS 抽样，libjpeg 1/4 缩到 160×120 灰度再帧差。</p>
+          <p><strong>取舍</strong> 不追求逐帧定位，换稳定开销。</p>
+          <p><strong>结果</strong> 推流保持约 30 FPS；静止 0 误报，挥手 10/10。</p>
+          <p><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M3_motion_event.md">证据 · M3 motion</a></p>
+        </div>
+      </article>
+      <article class="decision">
+        <div class="decision-q">
+          <h3>摄像头缺失不退出</h3>
+          <p><strong>问题</strong> USB 摄像头可能断开，节点号也会变。</p>
+          <p><strong>约束</strong> 硬件短暂不可用不应让整个服务退出。</p>
+        </div>
+        <div class="decision-a">
+          <p><strong>决策</strong> 按 <code>uvcvideo</code> + Video Capture + Streaming 重新枚举，进入 degraded 并重试；跳过 PXP 等非 Capture 节点（查询曾触发 Oops）。</p>
+          <p><strong>取舍</strong> 状态模型更复杂，恢复不靠 systemd 重启。</p>
+          <p><strong>结果</strong> 同一进程完成热插恢复。<strong>运行中拔出</strong>见 ADR-0004 与 M3；M4 D2-B 是<strong>启动时无摄像头再插入</strong>。</p>
+          <p><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/architecture/decisions/0004-camera-failure-degraded-mode.md">ADR-0004</a>
+             · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M3_motion_event.md">M3</a>
+             · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/bug_reports/M1-DRV-PXP-001_pxp_query_kernel_oops.md">PXP Oops</a></p>
+        </div>
+      </article>
+      <article class="decision">
+        <div class="decision-q">
+          <h3>systemd 故障契约</h3>
+          <p><strong>问题</strong> 所有退出都自动重启，配错会造成风暴。</p>
+          <p><strong>约束</strong> 崩溃应恢复；正常关闭和永久配置错误不应循环。</p>
+        </div>
+        <div class="decision-a">
+          <p><strong>决策</strong> SIGTERM 退出码 0；配置错误专用退出码 78，unit 使用 <code>Restart=on-failure</code> 与 <code>RestartPreventExitStatus=78</code>。</p>
+          <p><strong>取舍</strong> 必须把退出语义写进 unit，不能只靠重启。</p>
+          <p><strong>结果</strong> <code>kill -9</code> 约 3 秒拉起新 PID；<code>http_port=0</code> 保持 failed，12 秒无风暴。</p>
+          <p><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M4_fault_injection.md">证据 · M4 故障注入</a>
+             · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/systemd/imx6ull-sense.service">imx6ull-sense.service</a></p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="band band-dark lab" id="lab">
+    <div class="wrap">
+      <h2>交互实验室</h2>
+      <p class="model-banner">交互模型，数字来自板上验收证据。</p>
+      <div id="lab-boot" class="lab-boot" hidden>
+        实验室脚本未加载。请用
+        <code>python3 -m http.server 8090 --directory site</code>
+        打开 <a href="http://127.0.0.1:8090/#lab">http://127.0.0.1:8090/#lab</a>。
+        上方介绍、架构、决策和验证不依赖脚本。
+      </div>
+      <noscript>
+        <p class="lab-boot">实验室需要 JavaScript。项目介绍、架构、决策和验证表仍可阅读。</p>
+      </noscript>
+
+      <div class="lab-tabs" role="tablist" aria-label="实验室">
+        <button type="button" role="tab" id="tab-frame" aria-controls="panel-frame" aria-selected="true">帧流与慢客户端</button>
+        <button type="button" role="tab" id="tab-motion" aria-controls="panel-motion" aria-selected="false">运动检测</button>
+        <button type="button" role="tab" id="tab-fault" aria-controls="panel-fault" aria-selected="false">故障与恢复</button>
+      </div>
+
+      <div class="lab-stage" id="cross-section">
+        <div class="cross-flow">
+          <div class="block" data-block="camera"><strong>Camera</strong><span data-field="camera">uvc</span></div>
+          <div class="block" data-block="capture"><strong>Capture</strong><span data-field="capture">30 FPS</span></div>
+          <div class="block" data-block="slot"><strong>Latest JPEG</strong><span data-field="slot">seq 0</span></div>
+          <div class="block" data-block="http"><strong>HTTP</strong><span data-field="http">copy/skip</span></div>
+          <div class="block" data-block="motion"><strong>Motion</strong><span data-field="motion">3 FPS</span></div>
+        </div>
+        <p class="cross-note"><span data-field="sys">systemd active</span> · <span data-field="jsonl">jsonl 0 行</span></p>
+      </div>
+
+      <div class="tab-panel" id="panel-frame" role="tabpanel" aria-labelledby="tab-frame">
+        <div class="bench-grid">
+          <div class="panel">
+            <div class="controls">
+              <button type="button" id="play-btn" aria-label="播放或暂停模型时钟">暂停</button>
+              <label>客户端速度
+                <input id="speed" type="range" min="5" max="100" value="100">
+              </label>
+              <label><input id="show-dropped" type="checkbox"> 显示丢弃的帧</label>
+              <button type="button" id="node-hint">UVC 节点选择</button>
+            </div>
+            <canvas class="ticket-canvas" id="ticket-canvas" width="900" height="220" aria-label="帧序号模型，不是直播"></canvas>
+            <p class="sr-only" id="frame-live" aria-live="polite"></p>
+            <pre class="jsonl-preview" id="node-panel" hidden></pre>
+          </div>
+          <div class="caption">
+            <p>AppState 只有一格 JPEG；采集覆盖，不排队。</p>
+            <p>慢客户端发送期间槽位已更新，下次 copy 最新序号，中间号跳过——延迟不积压。</p>
+            <p>模型里采集仍是 30 FPS（板上单客户端约 30.0，见 <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M2_mjpeg_stream.md">M2</a>）。卡片约 12 FPS 绘制，跳号按模型时间算。</p>
+            <p>节点按 driver 与 Device Caps 选择 Capture，不把 PXP 输出当摄像头。编号不是身份。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panel-motion" role="tabpanel" aria-labelledby="tab-motion" hidden>
+        <div class="bench-grid">
+          <div class="panel">
+            <div class="controls">
+              <button type="button" id="wave-btn">挥手</button>
+              <button type="button" id="idle-btn">静止</button>
+              <label>像素差 <input id="pixel-delta" type="range" min="1" max="255" value="25"></label>
+              <label>比例阈值 <input id="ratio" type="range" min="1" max="50" value="5"></label>
+              <label>cooldown ms <input id="cooldown" type="range" min="0" max="5000" value="1500"></label>
+              <label>sample FPS <input id="sample-fps" type="range" min="1" max="5" value="3"></label>
+            </div>
+            <p id="slider-note">滑条是实验室范围；daemon 配置见 <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/reference/configuration.md">configuration.md</a>（sample 1–30，cooldown 1–3600000）。0 ms cooldown 为板上拒绝的反事实。</p>
+            <div class="canvas-pair">
+              <figure>
+                <figcaption>输入（几何色块，不是摄像头）</figcaption>
+                <canvas class="lens-canvas" id="lens-canvas" width="320" height="240" aria-label="运动输入模型"></canvas>
+              </figure>
+              <figure>
+                <figcaption>160×120 灰度；橙色为变化像素</figcaption>
+                <canvas class="gray-canvas" id="gray-canvas" width="320" height="240" aria-label="灰度差模型"></canvas>
+              </figure>
+            </div>
+            <div class="ratio-bar" id="ratio-bar"><div class="ratio-fill" id="ratio-fill"></div><div class="ratio-mark" id="ratio-mark"></div></div>
+            <p id="phase-label">IDLE</p>
+            <pre class="jsonl-preview" id="motion-jsonl"></pre>
+          </div>
+          <div class="caption">
+            <p>3 FPS 抽样、160×120、像素差 25、比例 5%、cooldown 1500 ms。见 <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M3_motion_event.md">M3</a>。</p>
+            <p>教学态 IDLE / MOTION / COOLDOWN 不是 <code>/status.motion_state</code>（那是布尔）。</p>
+            <p>静止应对 0 误报；过阈值才写 JSONL；cooldown 内不追加。</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-panel" id="panel-fault" role="tabpanel" aria-labelledby="tab-fault" hidden>
+        <div class="bench-grid">
+          <div class="panel">
+            <div class="controls" id="fault-buttons"></div>
+            <p id="fault-empty-note"></p>
+            <div class="fault-cols">
+              <div><strong>process</strong><pre class="status-json" id="proc-col"></pre></div>
+              <div><strong>/status 子集</strong><pre class="status-json" id="status-col"></pre></div>
+              <div><strong>jsonl</strong><pre class="jsonl-preview" id="jsonl-col"></pre></div>
+            </div>
+            <p id="systemd-bar"></p>
+          </div>
+          <div class="caption">
+            <p>结局对齐 <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M4_fault_injection.md">M4 故障注入</a> 子集，不美化。</p>
+            <p>SIGTERM 退出码 0 不拉起；<code>kill -9</code> 约 3 s 后新 PID；非法配置是启动失败、退出码 78。</p>
+            <p>日志写失败要点「尝试追加一次」才把 <code>event_log_state</code> 打成 unavailable。计数是 gate emit，写失败也加；路径恢复后要等下一次成功写入才会回到 ok。</p>
+            <p>reboot 保留旧 JSONL，不自动追加。完整字段见 <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/reference/http-api.md">http-api.md</a>。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="band band-light" id="verification">
+    <div class="wrap">
+      <h2>板上验收</h2>
+      <p class="section-lead">结论汇总自 <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/test-report.md">综合测试报告</a>。故障场景来自 M4；运动行为来自 M3。页面不复制原始日志，也不补造未记录的恢复时间。</p>
+      <div class="table-wrap">
+        <table class="verify-table">
+          <thead>
+            <tr><th>场景</th><th>系统行为</th><th>结果</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>启动无摄像头</td><td>daemon 保持运行，<code>health=degraded</code></td><td><span class="ok">Verified</span></td></tr>
+            <tr><td>摄像头插入 / 热插恢复</td><td>同一进程恢复采集，<code>NRestarts=0</code></td><td><span class="ok">Verified</span></td></tr>
+            <tr><td>SIGTERM</td><td>正常退出，不触发失败重启</td><td><span class="ok">Verified</span></td></tr>
+            <tr><td><code>kill -9</code></td><td>systemd 约 3 s 拉起新进程；JSONL 保留</td><td><span class="ok">Verified</span></td></tr>
+            <tr><td>非法配置</td><td>退出码 78，无重启风暴</td><td><span class="ok">Verified</span></td></tr>
+            <tr><td>事件日志写失败</td><td>推流继续；<code>event_log_state=unavailable</code>；下一次成功追加后才回到 ok</td><td><span class="ok">Verified</span></td></tr>
+            <tr><td>开发板 reboot</td><td>无人登录即自启</td><td><span class="ok">Verified</span></td></tr>
+            <tr><td>JSONL 持久化</td><td>重启后旧行保留并继续追加；<code>event_count</code> 归零</td><td><span class="ok">Verified</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="section-lead"><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M4_fault_injection.md">M4 故障证据</a>
+        · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M3_motion_event.md">M3 motion 证据</a></p>
+    </div>
+  </section>
+
+  <section class="band band-light" id="opensource">
+    <div class="wrap">
+      <h2>开源入口</h2>
+      <p class="section-lead">步骤仍由仓库文档管理。主页只提供入口。</p>
+      <ul class="entry-list">
+        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/tutorials/getting-started.md">从零运行</a></li>
+        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/how-to/setup-development-host.md">主机构建与 ARM 交叉编译</a></li>
+        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/operations/runbooks/service-lifecycle.md">板端部署与服务生命周期</a></li>
+        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/reference/http-api.md">HTTP API</a></li>
+        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/reference/configuration.md">配置参考</a></li>
+        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/architecture/overview.md">架构与 ADR</a></li>
+        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/test-report.md">测试报告</a></li>
+        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/releases/tag/v0.1-mvp">Release v0.1-mvp</a></li>
+        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub 仓库</a></li>
+      </ul>
     </div>
   </section>
 
   <footer class="site-footer">
-    <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub</a>
-    <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/releases/tag/v0.1-mvp">v0.1-mvp</a>
-    <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/test-report.md">测试报告</a>
-    <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/LICENSE">MIT</a>
+    <p>Designed and implemented by Eric Hou</p>
+    <p>
+      <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub</a>
+      · <a href="#architecture">Architecture</a>
+      · <a href="#verification">Verification</a>
+      · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/LICENSE">License</a>
+    </p>
   </footer>
-  <script>
-    window.setTimeout(function () {
-      if (!window.__labReady) {
-        var el = document.getElementById("boot-error");
-        if (el) el.hidden = false;
-      }
-    }, 600);
-  </script>
+
+  <script src="./js/boot.js"></script>
   <script type="module" src="./js/main.js"></script>
 </body>
 </html>
