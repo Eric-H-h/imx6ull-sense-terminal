@@ -38,9 +38,9 @@
 
 ## 文档状态
 
-- M0、M1、M2、M3、M4 已完成，证据和阶段总结已保存并合入 `develop`。
-- M5 测试报告、演示步骤、设计问答和公开说明已完成；根目录不再使用 HANDOFF。PR、`develop -> main` 和 `v0.1-mvp` 尚未执行。
-- 公开交互模型源码在仓库根目录 `site/`，由 GitHub Actions 从 `main` 发布；不要把 Pages 设为 Deploy from branch `/docs`。
+- M0–M5 已完成；证据、阶段总结与公开说明已合入 `main`。根目录不再使用 HANDOFF。
+- 发布标签 [`v0.1-mvp`](https://github.com/Eric-H-h/imx6ull-sense-terminal/releases/tag/v0.1-mvp)；仓库为 Public。
+- 公开交互模型源码在仓库根目录 `site/`，由 GitHub Actions 从 `main` 发布：<https://eric-h-h.github.io/imx6ull-sense-terminal/>。不要把 Pages 设为 Deploy from branch `/docs`。
 - M2 生成 HTML 仍可留在 `reports/`；旧的 `tools/report-sites/` 不是公开模型。
 
 文档架构决定见 [ADR-0005](architecture/decisions/0005-use-docs-as-code-structure.md)。
