@@ -2,7 +2,7 @@
 
 ## 阶段状态
 
-- 状态：Completed（待合入 `develop`）
+- 状态：Completed；其后已合入 `main`，标签 `v0.1-mvp`，仓库 Public
 - 完成日期：2026-08-20
 - 分支：`codex/m5-docs-demo`
 - Commit：本总结随文档提交

@@ -142,13 +142,15 @@ M5 不新增 daemon 能力。它把已验收事实整理成可演示、可审查
 - 已知限制和 fallback 写入测试报告与 README。
 - 根目录不再放置 HANDOFF；简历要点不进入仓库。
 
-尚未执行：
+已执行：
 
-- 面向 `develop` 的 M5 PR。
-- `develop -> main` 发布合并。
-- 发布标签 `v0.1-mvp`。
-- 将 GitHub 仓库改为 Public。
-- 演示视频文件（按演示步骤由操作者录制，不提交到仓库）。
+- M5 文档合入 `develop`，再合并到 `main`。
+- 发布标签 [`v0.1-mvp`](https://github.com/Eric-H-h/imx6ull-sense-terminal/releases/tag/v0.1-mvp)。
+- GitHub 仓库为 Public；Pages 从 `main` 的 `site/` 发布。
+
+仍可选、不提交到仓库：
+
+- 演示视频文件（按演示步骤由操作者录制）。
 
 ### M5 验收
 
