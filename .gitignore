@@ -12,6 +12,10 @@ events.jsonl
 # Published GitHub Pages assets (override global *.jpg)
 !site/images/
 !site/images/hero-board-camera-wide-v2.jpg
+
+# Local Pages / agent leftovers (do not publish)
+site/.workbuddy/
+site/ARCH-REDESIGN-PLAN.md
 secrets.local.md
 docs/presentation/resume.md
 app/daemon/imx6ull-sense
