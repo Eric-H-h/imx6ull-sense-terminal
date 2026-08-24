@@ -43,6 +43,7 @@ jobs:
           mkdir publish
           cp site/index.html publish/
           cp -r site/css site/js site/svg publish/
+          if [ -d site/images ]; then cp -r site/images publish/; fi
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:
