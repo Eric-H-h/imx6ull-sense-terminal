@@ -30,40 +30,75 @@
 
   <section class="band band-dark hero" id="overview">
     <div class="wrap hero-inner">
-      <p class="eyebrow">EBF6ULL S1 Pro · Linux 4.19 · systemd 241</p>
-      <h1>i.MX6ULL Sense Terminal</h1>
-      <p class="hero-lead">面向资源受限 ARM Linux 平台的<br>轻量级视觉感知与可靠运行服务。</p>
-      <p class="hero-actions">
-        <a class="btn btn-primary" href="#architecture">查看系统架构</a>
-        <a class="btn btn-ghost" href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub 源码</a>
-      </p>
-      <dl class="plaque">
-        <div><dt>平台</dt><dd>i.MX6ULL / ARMv7</dd></div>
-        <div><dt>核心</dt><dd>C11 + pthread</dd></div>
-        <div><dt>视频</dt><dd>V4L2 + MJPEG</dd></div>
-        <div><dt>运行</dt><dd>systemd</dd></div>
-      </dl>
+      <div class="hero-copy">
+        <p class="eyebrow">Verified on i.MX6ULL · Linux 4.19 · systemd 241</p>
+        <h1>i.MX6ULL Sense Terminal</h1>
+        <p class="hero-lead">面向资源受限 ARM Linux 平台的<br>轻量级视觉感知与可靠运行服务。</p>
+        <p class="hero-actions">
+          <a class="btn btn-primary" href="#architecture">查看系统架构</a>
+          <a class="btn btn-ghost" href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub 源码</a>
+        </p>
+        <dl class="plaque" aria-label="项目技术事实">
+          <div><dt>平台</dt><dd>i.MX6ULL / ARMv7</dd></div>
+          <div><dt>核心</dt><dd>C11 + pthread</dd></div>
+          <div><dt>视频</dt><dd>V4L2 + MJPEG</dd></div>
+          <div><dt>运行</dt><dd>systemd</dd></div>
+        </dl>
+      </div>
     </div>
   </section>
 
-  <section class="band band-light" id="goals">
+  <section class="band band-tint" id="goals">
     <div class="wrap">
-      <h2>工程目标</h2>
+      <header class="section-heading">
+        <div>
+          <p class="section-kicker">Engineering priorities</p>
+          <h2>工程目标</h2>
+        </div>
+        <p>不追求功能堆叠，重点解决嵌入式视觉服务最实际的三个约束：帧流不能阻塞、资源必须可控、故障必须可恢复。</p>
+      </header>
       <div class="goals">
-        <article>
+        <article class="goal goal-realtime">
+          <div class="goal-top">
+            <span class="goal-index">01 · REALTIME</span>
+            <p class="goal-metric">30.0 <small>FPS</small></p>
+          </div>
           <h3>实时性</h3>
-          <p class="goal-aim">保持约 30 FPS 的 MJPEG 推流；慢客户端可以跳帧，但不能堵住采集。</p>
-          <p class="goal-out">单客户端 30 分钟全程约 30.0 FPS，采集与发送解耦。</p>
+          <p class="goal-aim">采集始终向前推进。慢客户端可以跳过旧帧，但不能堵住摄像头。</p>
+          <dl class="goal-facts">
+            <div><dt>设计</dt><dd>Latest-frame</dd></div>
+            <div><dt>路径</dt><dd>Capture / HTTP 解耦</dd></div>
+            <div><dt>实测</dt><dd>单客户端 30 分钟稳定</dd></div>
+          </dl>
+          <div class="goal-signal" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         </article>
-        <article>
+        <article class="goal goal-resource">
+          <div class="goal-top">
+            <span class="goal-index">02 · RESOURCE</span>
+            <p class="goal-metric">2.9 <small>MB RSS</small></p>
+          </div>
           <h3>资源意识</h3>
-          <p class="goal-aim">在 i.MX6ULL 上控制 CPU 与内存；运动检测用低频灰度抽样，不拆主链路。</p>
-          <p class="goal-out">3 FPS × 160×120 灰度；全栈 RSS 2968 KB（delta 0），CPU 约 16.3%–16.6%。</p>
+          <p class="goal-aim">运动检测不拆主链路，以低频、低分辨率灰度抽样换取稳定开销。</p>
+          <dl class="goal-facts">
+            <div><dt>抽样</dt><dd>3 FPS</dd></div>
+            <div><dt>灰度</dt><dd>160 × 120</dd></div>
+            <div><dt>CPU</dt><dd>约 16.3%–16.6%</dd></div>
+          </dl>
+          <div class="goal-signal" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         </article>
-        <article>
+        <article class="goal goal-recovery">
+          <div class="goal-top">
+            <span class="goal-index">03 · RECOVERY</span>
+            <p class="goal-metric">≈3 <small>SEC</small></p>
+          </div>
           <h3>可恢复性</h3>
-          <p class="goal-aim">摄像头、日志、进程故障都有可诊断状态；无人值守也能跑。</p>
-          <p class="goal-out">缺失摄像头保持 degraded；崩溃由 systemd 拉起；配错退出码 78 不风暴。</p>
+          <p class="goal-aim">摄像头、日志和进程故障都进入可诊断状态，无人值守也能继续运行。</p>
+          <dl class="goal-facts">
+            <div><dt>硬件缺失</dt><dd>degraded，不退出</dd></div>
+            <div><dt>进程崩溃</dt><dd>systemd 拉起</dd></div>
+            <div><dt>配置错误</dt><dd>exit 78，不风暴</dd></div>
+          </dl>
+          <div class="goal-signal" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
         </article>
       </div>
     </div>
@@ -71,109 +106,112 @@
 
   <section class="band band-light" id="architecture">
     <div class="wrap">
-      <h2>系统架构</h2>
-      <p class="section-lead">UVC 采集写入唯一的 latest JPEG；HTTP 与 motion 都是这格的消费者。systemd 包着进程生命周期，不是数据通路上的一环。</p>
+      <header class="section-heading">
+        <div>
+          <p class="section-kicker">Data path</p>
+          <h2>系统架构</h2>
+        </div>
+        <p class="arch-summary"><strong>一处写入，两路消费。</strong>采集线程持续覆盖同一份最新 JPEG 快照；HTTP 推流与运动检测各自按需读取，互不阻塞。systemd 只管理服务的启动、退出与故障重启，不参与图像数据通路。</p>
+      </header>
       <div class="arch">
-        <svg class="arch-svg" viewBox="0 0 980 280" role="img" aria-labelledby="arch-title">
-          <title id="arch-title">从 UVC 到 HTTP、motion 与 systemd 的数据路径</title>
-          <g fill="none" stroke="#DCE4E0" stroke-width="2">
-            <path id="flow-path" d="M90 70 H250 H410 H570 V70 H740 M570 70 V190 H740"/>
-          </g>
-          <g class="arch-nodes">
-            <g class="node node-pcb" data-arch="camera" tabindex="0" role="button" aria-label="Camera">
-              <rect x="20" y="38" width="140" height="64" rx="6"/>
-              <text x="90" y="76" text-anchor="middle">Camera</text>
-            </g>
-            <g class="node node-pcb" data-arch="capture" tabindex="0" role="button" aria-label="Capture">
-              <rect x="180" y="38" width="140" height="64" rx="6"/>
-              <text x="250" y="76" text-anchor="middle">V4L2 Capture</text>
-            </g>
-            <g class="node node-data" data-arch="slot" tabindex="0" role="button" aria-label="Latest JPEG">
-              <rect x="340" y="38" width="140" height="64" rx="6"/>
-              <text x="410" y="76" text-anchor="middle">Latest JPEG</text>
-            </g>
-            <g class="node node-data" data-arch="http" tabindex="0" role="button" aria-label="HTTP MJPEG">
-              <rect x="670" y="38" width="160" height="64" rx="6"/>
-              <text x="750" y="76" text-anchor="middle">HTTP MJPEG</text>
-            </g>
-            <g class="node node-motion" data-arch="motion" tabindex="0" role="button" aria-label="Motion">
-              <rect x="500" y="158" width="140" height="64" rx="6"/>
-              <text x="570" y="196" text-anchor="middle">Motion 3 FPS</text>
-            </g>
-            <g class="node node-motion" data-arch="jsonl" tabindex="0" role="button" aria-label="JSONL">
-              <rect x="670" y="158" width="160" height="64" rx="6"/>
-              <text x="750" y="196" text-anchor="middle">JSONL + /status</text>
-            </g>
-          </g>
-          <rect class="sysd-shell" x="170" y="18" width="680" height="230" rx="10"/>
-          <text class="sysd-label" x="180" y="36">systemd 生命周期</text>
-        </svg>
-        <aside class="arch-detail" id="arch-detail">
-          <p class="arch-default">默认：摄像头 → 采集 → 唯一 JPEG 槽。浏览器走 HTTP 推流；motion 以约 3 FPS 抽样同一槽。选中模块可看职责与源码位置。</p>
+        <div class="arch-canvas" aria-label="从 UVC 摄像头到推流与运动事件的数据路径">
+          <svg class="arch-wires" aria-hidden="true" focusable="false"></svg>
+          <div class="arch-shell">
+            <p class="arch-shell-label"><span aria-hidden="true"></span> systemd process boundary</p>
+            <div class="arch-mainline">
+              <button type="button" class="arch-node node-pcb" data-arch="camera"><span class="node-role">SOURCE</span><strong>USB UVC</strong><small>MJPEG camera</small></button>
+              <span class="arch-arrow" aria-hidden="true"></span>
+              <button type="button" class="arch-node node-pcb" data-arch="capture"><span class="node-role">CAPTURE</span><strong>V4L2 MMAP</strong><small>dynamic device select</small></button>
+              <span class="arch-arrow" aria-hidden="true"></span>
+              <button type="button" class="arch-node node-data node-slot" data-arch="slot"><span class="node-role">SHARED STATE</span><strong>Latest JPEG</strong><small>one complete frame</small></button>
+            </div>
+            <div class="arch-fanout">
+              <div class="arch-branch branch-live">
+                <p class="branch-label">LIVE DELIVERY</p>
+                <button type="button" class="arch-node node-data" data-arch="http"><span class="node-role">HTTP</span><strong>MJPEG Stream</strong><small>copy latest / skip stale</small></button>
+              </div>
+              <div class="arch-branch branch-motion">
+                <p class="branch-label">LOW-RATE ANALYSIS</p>
+                <div class="branch-chain">
+                  <button type="button" class="arch-node node-motion" data-arch="motion"><span class="node-role">MOTION</span><strong>3 FPS Sample</strong><small>160 × 120 grayscale</small></button>
+                  <span class="arch-arrow" aria-hidden="true"></span>
+                  <button type="button" class="arch-node node-event" data-arch="jsonl"><span class="node-role">EVENT</span><strong>JSONL + /status</strong><small>threshold / cooldown</small></button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <aside class="arch-detail" id="arch-detail" data-tone="overview" aria-live="polite">
+          <div class="detail-head">
+            <p class="detail-label">DATA FLOW OVERVIEW</p>
+            <h3>数据通路总览</h3>
+            <p class="detail-summary">采集持续覆盖最新快照，推流与检测各自按需读取。</p>
+          </div>
+          <dl class="detail-facts">
+            <div><dt>写入</dt><dd>V4L2 Capture · 约 30 FPS</dd></div>
+            <div><dt>共享</dt><dd>1 份完整最新 JPEG</dd></div>
+            <div><dt>消费</dt><dd>HTTP / Motion · 约 3 FPS</dd></div>
+          </dl>
+          <div class="detail-reason">
+            <span>设计原则</span>
+            <p>消费者可以跳过旧帧，但不能反向阻塞采集。</p>
+          </div>
         </aside>
       </div>
     </div>
   </section>
 
-  <section class="band band-light" id="decisions">
+  <section class="band band-tint" id="decisions">
     <div class="wrap">
-      <h2>工程决策</h2>
-      <article class="decision">
-        <div class="decision-q">
-          <h3>latest-frame 与慢客户端</h3>
-          <p><strong>问题</strong> 浏览器读取可能慢于采集。</p>
-          <p><strong>约束</strong> 不能无限排队，也不能让 HTTP 堵住 capture。</p>
+      <header class="section-heading">
+        <div>
+          <p class="section-kicker">Trade-offs</p>
+          <h2>工程决策</h2>
         </div>
-        <div class="decision-a">
-          <p><strong>决策</strong> AppState 只保留最新完整 JPEG 和递增 sequence。</p>
-          <p><strong>取舍</strong> 慢客户端会跳帧，但不堆积延迟。</p>
-          <p><strong>结果</strong> 采集与发送解耦；单客户端约 30 FPS。</p>
-          <p><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M2_mjpeg_stream.md">证据 · M2 推流</a>
-             · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/app/daemon/state.c">state.c</a></p>
-        </div>
-      </article>
-      <article class="decision">
-        <div class="decision-q">
-          <h3>低频运动检测</h3>
-          <p><strong>问题</strong> 每帧全分辨率 JPEG 解码会打满 ARM CPU。</p>
-          <p><strong>约束</strong> 不能明显拉低 MJPEG 主链路帧率。</p>
-        </div>
-        <div class="decision-a">
-          <p><strong>决策</strong> 约 3 FPS 抽样，libjpeg 1/4 缩到 160×120 灰度再帧差。</p>
-          <p><strong>取舍</strong> 不追求逐帧定位，换稳定开销。</p>
-          <p><strong>结果</strong> 推流保持约 30 FPS；静止 0 误报，挥手 10/10。</p>
-          <p><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M3_motion_event.md">证据 · M3 motion</a></p>
-        </div>
-      </article>
-      <article class="decision">
-        <div class="decision-q">
-          <h3>摄像头缺失不退出</h3>
-          <p><strong>问题</strong> USB 摄像头可能断开，节点号也会变。</p>
-          <p><strong>约束</strong> 硬件短暂不可用不应让整个服务退出。</p>
-        </div>
-        <div class="decision-a">
-          <p><strong>决策</strong> 按 <code>uvcvideo</code> + Video Capture + Streaming 重新枚举，进入 degraded 并重试；跳过 PXP 等非 Capture 节点（查询曾触发 Oops）。</p>
-          <p><strong>取舍</strong> 状态模型更复杂，恢复不靠 systemd 重启。</p>
-          <p><strong>结果</strong> 同一进程完成热插恢复。<strong>运行中拔出</strong>见 ADR-0004 与 M3；M4 D2-B 是<strong>启动时无摄像头再插入</strong>。</p>
-          <p><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/architecture/decisions/0004-camera-failure-degraded-mode.md">ADR-0004</a>
-             · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M3_motion_event.md">M3</a>
-             · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/bug_reports/M1-DRV-PXP-001_pxp_query_kernel_oops.md">PXP Oops</a></p>
-        </div>
-      </article>
-      <article class="decision">
-        <div class="decision-q">
-          <h3>systemd 故障契约</h3>
-          <p><strong>问题</strong> 所有退出都自动重启，配错会造成风暴。</p>
-          <p><strong>约束</strong> 崩溃应恢复；正常关闭和永久配置错误不应循环。</p>
-        </div>
-        <div class="decision-a">
-          <p><strong>决策</strong> SIGTERM 退出码 0；配置错误专用退出码 78，unit 使用 <code>Restart=on-failure</code> 与 <code>RestartPreventExitStatus=78</code>。</p>
-          <p><strong>取舍</strong> 必须把退出语义写进 unit，不能只靠重启。</p>
-          <p><strong>结果</strong> <code>kill -9</code> 约 3 秒拉起新 PID；<code>http_port=0</code> 保持 failed，12 秒无风暴。</p>
-          <p><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M4_fault_injection.md">证据 · M4 故障注入</a>
-             · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/systemd/imx6ull-sense.service">imx6ull-sense.service</a></p>
-        </div>
-      </article>
+        <p>每项设计都从明确问题和板端约束出发。这里展示的不是功能清单，而是选择、代价与实测结果。</p>
+      </header>
+      <div class="decision-grid">
+        <article class="decision">
+          <header><span class="decision-id">DECISION 01</span><h3>latest-frame 与慢客户端</h3></header>
+          <div class="decision-sequence">
+            <div class="decision-step step-problem"><span>问题</span><p>浏览器读取可能慢于摄像头采集。</p></div>
+            <div class="decision-step step-constraint"><span>约束</span><p>不能无限排队，也不能让 HTTP 堵住 capture。</p></div>
+            <div class="decision-step step-choice"><span>决策</span><p>AppState 只保留最新完整 JPEG 与递增 sequence。</p></div>
+            <div class="decision-step step-result"><span>结果</span><p>慢客户端跳帧而不积压延迟；单客户端约 30 FPS。</p></div>
+          </div>
+          <footer><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M2_mjpeg_stream.md">M2 推流证据</a><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/app/daemon/state.c">state.c</a></footer>
+        </article>
+        <article class="decision">
+          <header><span class="decision-id">DECISION 02</span><h3>低频运动检测</h3></header>
+          <div class="decision-sequence">
+            <div class="decision-step step-problem"><span>问题</span><p>每帧全分辨率 JPEG 解码会占用大量 ARM CPU。</p></div>
+            <div class="decision-step step-constraint"><span>约束</span><p>不能明显拉低 MJPEG 主链路帧率。</p></div>
+            <div class="decision-step step-choice"><span>决策</span><p>3 FPS 抽样，libjpeg 1/4 缩放后做灰度帧差。</p></div>
+            <div class="decision-step step-result"><span>结果</span><p>推流保持约 30 FPS；静止 0 误报，挥手 10/10。</p></div>
+          </div>
+          <footer><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M3_motion_event.md">M3 motion 证据</a></footer>
+        </article>
+        <article class="decision">
+          <header><span class="decision-id">DECISION 03</span><h3>摄像头缺失不退出</h3></header>
+          <div class="decision-sequence">
+            <div class="decision-step step-problem"><span>问题</span><p>USB 摄像头会断开，设备节点编号也会变化。</p></div>
+            <div class="decision-step step-constraint"><span>约束</span><p>短暂硬件故障不应终止整个服务。</p></div>
+            <div class="decision-step step-choice"><span>决策</span><p>按 driver 与 Device Caps 重新枚举，进入 degraded 并重试。</p></div>
+            <div class="decision-step step-result"><span>结果</span><p>同一进程完成热插恢复，避免把 PXP 当作摄像头。</p></div>
+          </div>
+          <footer><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/architecture/decisions/0004-camera-failure-degraded-mode.md">ADR-0004</a><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/bug_reports/M1-DRV-PXP-001_pxp_query_kernel_oops.md">PXP Oops 复盘</a></footer>
+        </article>
+        <article class="decision">
+          <header><span class="decision-id">DECISION 04</span><h3>systemd 故障契约</h3></header>
+          <div class="decision-sequence">
+            <div class="decision-step step-problem"><span>问题</span><p>所有退出都自动重启，会让永久配置错误形成风暴。</p></div>
+            <div class="decision-step step-constraint"><span>约束</span><p>崩溃应恢复；正常退出与配置错误不应循环。</p></div>
+            <div class="decision-step step-choice"><span>决策</span><p>SIGTERM 返回 0；配置错误返回 78 并阻止重启。</p></div>
+            <div class="decision-step step-result"><span>结果</span><p><code>kill -9</code> 约 3 秒恢复；非法配置 12 秒无风暴。</p></div>
+          </div>
+          <footer><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M4_fault_injection.md">M4 故障证据</a><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/systemd/imx6ull-sense.service">systemd unit</a></footer>
+        </article>
+      </div>
     </div>
   </section>
 
@@ -288,45 +326,52 @@
 
   <section class="band band-light" id="verification">
     <div class="wrap">
-      <h2>板上验收</h2>
-      <p class="section-lead">结论汇总自 <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/test-report.md">综合测试报告</a>。故障场景来自 M4；运动行为来自 M3。页面不复制原始日志，也不补造未记录的恢复时间。</p>
+      <header class="section-heading">
+        <div>
+          <p class="section-kicker">Board verification</p>
+          <h2>板上验收</h2>
+        </div>
+        <p>全部结论来自真实 i.MX6ULL 板端测试。主页只保留可扫描的结果，完整命令和日志继续由 evidence 文档管理。</p>
+      </header>
+      <div class="verification-summary" aria-label="验收摘要">
+        <div><strong>8 / 8</strong><span>故障场景通过</span></div>
+        <div><strong>≈ 3 s</strong><span>崩溃恢复时间</span></div>
+        <div><strong>0</strong><span>配置错误重启风暴</span></div>
+      </div>
       <div class="table-wrap">
         <table class="verify-table">
-          <thead>
-            <tr><th>场景</th><th>系统行为</th><th>结果</th></tr>
-          </thead>
+          <thead><tr><th>场景</th><th>系统行为</th><th>结果</th></tr></thead>
           <tbody>
-            <tr><td>启动无摄像头</td><td>daemon 保持运行，<code>health=degraded</code></td><td><span class="ok">Verified</span></td></tr>
-            <tr><td>摄像头插入 / 热插恢复</td><td>同一进程恢复采集，<code>NRestarts=0</code></td><td><span class="ok">Verified</span></td></tr>
-            <tr><td>SIGTERM</td><td>正常退出，不触发失败重启</td><td><span class="ok">Verified</span></td></tr>
-            <tr><td><code>kill -9</code></td><td>systemd 约 3 s 拉起新进程；JSONL 保留</td><td><span class="ok">Verified</span></td></tr>
-            <tr><td>非法配置</td><td>退出码 78，无重启风暴</td><td><span class="ok">Verified</span></td></tr>
-            <tr><td>事件日志写失败</td><td>推流继续；<code>event_log_state=unavailable</code>；下一次成功追加后才回到 ok</td><td><span class="ok">Verified</span></td></tr>
-            <tr><td>开发板 reboot</td><td>无人登录即自启</td><td><span class="ok">Verified</span></td></tr>
-            <tr><td>JSONL 持久化</td><td>重启后旧行保留并继续追加；<code>event_count</code> 归零</td><td><span class="ok">Verified</span></td></tr>
+            <tr><td>启动无摄像头</td><td>daemon 保持运行，<code>health=degraded</code></td><td><span class="status-pill">Verified</span></td></tr>
+            <tr><td>摄像头插入 / 热插恢复</td><td>同一进程恢复采集，<code>NRestarts=0</code></td><td><span class="status-pill">Verified</span></td></tr>
+            <tr><td>SIGTERM</td><td>正常退出，不触发失败重启</td><td><span class="status-pill">Verified</span></td></tr>
+            <tr><td><code>kill -9</code></td><td>systemd 约 3 秒拉起新进程；JSONL 保留</td><td><span class="status-pill">Verified</span></td></tr>
+            <tr><td>非法配置</td><td>退出码 78，无重启风暴</td><td><span class="status-pill">Verified</span></td></tr>
+            <tr><td>事件日志写失败</td><td>推流继续；下一次成功追加后恢复为 ok</td><td><span class="status-pill">Verified</span></td></tr>
+            <tr><td>开发板 reboot</td><td>无人登录即可自动启动</td><td><span class="status-pill">Verified</span></td></tr>
+            <tr><td>JSONL 持久化</td><td>重启后保留旧行并继续追加</td><td><span class="status-pill">Verified</span></td></tr>
           </tbody>
         </table>
       </div>
-      <p class="section-lead"><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M4_fault_injection.md">M4 故障证据</a>
-        · <a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M3_motion_event.md">M3 motion 证据</a></p>
+      <p class="evidence-links"><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/test-report.md">综合测试报告</a><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M4_fault_injection.md">M4 故障证据</a><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/evidence/M3_motion_event.md">M3 motion 证据</a></p>
     </div>
   </section>
 
-  <section class="band band-light" id="opensource">
+  <section class="band band-tint" id="opensource">
     <div class="wrap">
-      <h2>开源入口</h2>
-      <p class="section-lead">步骤仍由仓库文档管理。主页只提供入口。</p>
-      <ul class="entry-list">
-        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/tutorials/getting-started.md">从零运行</a></li>
-        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/how-to/setup-development-host.md">主机构建与 ARM 交叉编译</a></li>
-        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/operations/runbooks/service-lifecycle.md">板端部署与服务生命周期</a></li>
-        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/reference/http-api.md">HTTP API</a></li>
-        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/reference/configuration.md">配置参考</a></li>
-        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/architecture/overview.md">架构与 ADR</a></li>
-        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/test-report.md">测试报告</a></li>
-        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/releases/tag/v0.1-mvp">Release v0.1-mvp</a></li>
-        <li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub 仓库</a></li>
-      </ul>
+      <header class="section-heading">
+        <div>
+          <p class="section-kicker">Open source</p>
+          <h2>继续了解项目</h2>
+        </div>
+        <p>从运行项目、理解架构到复核测试证据，每类资料都有独立入口，不需要在首页阅读整份工程文档。</p>
+      </header>
+      <div class="entry-grid">
+        <article class="entry"><span class="entry-index">01</span><h3>开始使用</h3><p>从主机环境、ARM 交叉编译到板端运行。</p><ul><li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/tutorials/getting-started.md">从零运行</a></li><li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/how-to/setup-development-host.md">开发主机配置</a></li></ul></article>
+        <article class="entry"><span class="entry-index">02</span><h3>理解架构</h3><p>查看模块边界、关键接口与设计决策。</p><ul><li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/architecture/overview.md">架构总览与 ADR</a></li><li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/reference/http-api.md">HTTP API</a></li></ul></article>
+        <article class="entry"><span class="entry-index">03</span><h3>部署运维</h3><p>配置服务、管理生命周期并定位运行问题。</p><ul><li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/operations/runbooks/service-lifecycle.md">服务生命周期</a></li><li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/reference/configuration.md">配置参考</a></li></ul></article>
+        <article class="entry"><span class="entry-index">04</span><h3>证据与源码</h3><p>复核板端测试结果，查看版本和完整实现。</p><ul><li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/blob/v0.1-mvp/docs/verification/test-report.md">测试报告</a></li><li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal/releases/tag/v0.1-mvp">Release v0.1-mvp</a></li><li><a href="https://github.com/Eric-H-h/imx6ull-sense-terminal">GitHub 仓库</a></li></ul></article>
+      </div>
     </div>
   </section>
 
